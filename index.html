@@ -31,7 +31,9 @@
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
   /* nav */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px;
+    position: sticky; top: 12px; z-index: 40; background: rgba(10,10,12,.78);
+    backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
   .brand svg { display: block; }
   .nav-links { display: flex; gap: 26px; font-size: 14px; color: var(--dim); }
@@ -41,12 +43,22 @@
     display: inline-flex; align-items: center; gap: 8px;
     background: #fff; color: #000; font-weight: 600; font-size: 14px;
     padding: 10px 20px; border-radius: 999px; border: none; cursor: pointer;
+    position: relative; overflow: hidden;
   }
   .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
   .btn:hover { transform: translateY(-1px); }
+  .btn::after { content: ''; position: absolute; top: 0; left: -70%; width: 45%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+    transform: skewX(-20deg); transition: left .65s var(--ease); pointer-events: none; }
+  .btn:hover::after { left: 135%; }
 
   /* hero */
-  .hero { text-align: center; padding: 84px 0 40px; }
+  .hero { text-align: center; padding: 84px 0 40px; position: relative; }
+  .aura { position: absolute; left: 50%; top: 40px; width: 340px; height: 340px;
+    transform: translateX(-50%); border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(240,138,36,.16) 0%, rgba(240,138,36,0) 65%);
+    animation: auraPulse 5s ease-in-out infinite; }
+  @keyframes auraPulse { 0%, 100% { opacity: .7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.12); } }
   html { scroll-behavior: smooth; }
   .mascot { width: 120px; height: 120px; margin: 0 auto 28px; }
   /* scroll-reveal + entrance motion */
@@ -102,7 +114,7 @@
   footer { border-top: 1px solid var(--line); padding: 28px 0 44px; display: flex; justify-content: space-between; color: var(--dim); font-size: 13px; flex-wrap: wrap; gap: 12px; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .mascot, .mascot .eyes, .buddy .mini, nav,
+    .mascot, .mascot .eyes, .buddy .mini, nav, .aura,
     .hero h1, .hero .sub, .hero .cta, .hero .keys { animation: none !important; }
     .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   }
@@ -129,6 +141,7 @@
   </nav>
 
   <header class="hero">
+    <div class="aura"></div>
     <svg class="mascot" viewBox="-115 -115 230 230" role="img" aria-label="Hive mascot">
       <defs>
         <mask id="m" maskUnits="userSpaceOnUse" x="-115" y="-115" width="230" height="230">
@@ -503,11 +516,19 @@
 </div>
 
 <script>
-  /* scroll-reveal */
+  /* scroll-reveal with stagger */
   (function () {
     var els = document.querySelectorAll('.reveal');
+    // stagger cards inside each grid + buddy children of sections
+    document.querySelectorAll('.grid').forEach(function (grid) {
+      Array.prototype.forEach.call(grid.children, function (child, i) {
+        child.classList.add('reveal');
+        child.style.transitionDelay = ((i % 3) * 90) + 'ms';
+      });
+    });
+    var all = document.querySelectorAll('.reveal');
     if (!('IntersectionObserver' in window)) {
-      els.forEach(function (el) { el.classList.add('in'); });
+      all.forEach(function (el) { el.classList.add('in'); });
       return;
     }
     var io = new IntersectionObserver(function (entries) {
@@ -515,7 +536,7 @@
         if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
       });
     }, { threshold: 0.12 });
-    els.forEach(function (el) { io.observe(el); });
+    all.forEach(function (el) { io.observe(el); });
   })();
 </script>
 </body>
