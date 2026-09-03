@@ -47,7 +47,18 @@
 
   /* hero */
   .hero { text-align: center; padding: 84px 0 40px; }
-  .mascot { width: 120px; height: 120px; margin: 0 auto 28px; animation: breathe 4.2s ease-in-out infinite; }
+  html { scroll-behavior: smooth; }
+  .mascot { width: 120px; height: 120px; margin: 0 auto 28px; }
+  /* scroll-reveal + entrance motion */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  @keyframes heroIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  .hero .mascot { animation: breathe 4.2s ease-in-out infinite, heroIn .8s var(--ease) both; }
+  .hero h1 { animation: heroIn .8s var(--ease) .1s both; }
+  .hero .sub { animation: heroIn .8s var(--ease) .22s both; }
+  .hero .cta { animation: heroIn .8s var(--ease) .34s both; }
+  .hero .keys { animation: heroIn .8s var(--ease) .44s both; }
+  nav { animation: heroIn .7s var(--ease) both; }
   @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
   .mascot .eyes { animation: blink 4.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95.5% { transform: scaleY(.08); } }
@@ -89,7 +100,12 @@
   .dl { text-align: center; padding: 96px 0; }
   .dl .ver { display: inline-block; font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; margin-bottom: 20px; }
   footer { border-top: 1px solid var(--line); padding: 28px 0 44px; display: flex; justify-content: space-between; color: var(--dim); font-size: 13px; flex-wrap: wrap; gap: 12px; }
-  @media (prefers-reduced-motion: reduce) { .mascot, .mascot .eyes, .buddy .mini { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .mascot, .mascot .eyes, .buddy .mini, nav,
+    .hero h1, .hero .sub, .hero .cta, .hero .keys { animation: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
   @media (max-width: 640px) { .nav-links { display: none; } .buddy { padding: 24px; } }
 </style>
 </head>
@@ -103,6 +119,7 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#buddy">Buddy</a>
+      <a href="#docs">Docs</a>
       <a href="#soon">Coming soon</a>
       <a href="#waitlist">Waitlist</a>
       <a href="#download">Download</a>
@@ -127,18 +144,18 @@
     <h1>The desktop AI<br/>that <span class="o">does things.</span></h1>
     <p class="sub">Hive is a black-theme AI workspace for Windows: cited web research, code, a multi-agent swarm — plus a cursor buddy and a notch popover that can actually click, type, and open apps on your PC.</p>
     <div class="cta">
-      <a class="btn" href="#download">Download for Windows</a>
+      <a class="btn" href="#waitlist">Download for Windows</a>
       <a class="btn ghost" href="#features">See how it works</a>
     </div>
     <p class="keys">Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — the buddy pops, the app never opens.</p>
   </header>
 
-  <div class="shot">
+  <div class="shot reveal">
     <div class="shot-bar"><i></i><i></i><i></i></div>
     <img src="hive-screenshot.png" alt="Hive app — black chat workspace with the orange mascot" />
   </div>
 
-  <section class="section" id="features">
+  <section class="section reveal" id="features">
     <h2>One window. Every job.</h2>
     <p class="lead">Chat is the interface. Everything else — research, code, automation — happens inside the conversation.</p>
     <div class="grid">
@@ -160,17 +177,30 @@
     </div>
   </section>
 
-  <section class="dl" id="download">
+  <section class="section reveal" id="docs" style="padding-top:32px;">
+    <h2>Docs.</h2>
+    <p class="lead">Everything you need in five minutes.</p>
+    <div class="grid">
+      <div class="card"><div class="ic">🚀</div><h3>Quickstart</h3><p>Clone the repo, <code>npm install</code>, <code>npm run dev</code> for daily use or <code>npm run dist:win</code> for the installer. Add your OpenRouter key in Settings → Models. Done.</p></div>
+      <div class="card"><div class="ic">🟠</div><h3>Buddy</h3><p>Settings → General → Hive Buddy at Cursor. The orange companion trails your mouse on every screen and hides whenever Hive hides. Pick its model and ink in the same place.</p></div>
+      <div class="card"><div class="ic">⬛</div><h3>Notch</h3><p>Press <code>Ctrl+Shift+J</code> anywhere: a pill pops at the top of your screen and expands into the Buddy panel. Ask, dictate with 🎙, or run <code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code>. <code>Esc</code> dismisses.</p></div>
+      <div class="card"><div class="ic">🖱️</div><h3>PC control</h3><p>The buddy opens apps and URLs, runs PowerShell, clicks window coordinates, and types into the focused window. Destructive shell commands are blocked by policy; every action lands in the overlay audit log.</p></div>
+      <div class="card"><div class="ic">👑</div><h3>Swarm</h3><p>Rail → Workers opens the roster in the main view. Chat live with any bot, create custom workers, remove the ones you outgrew. Chats persist per conversation in the sidebar.</p></div>
+      <div class="card"><div class="ic">❓</div><h3>FAQ</h3><p><strong>Windows only?</strong> Yes, today. <strong>Free?</strong> Yes — bring your own OpenRouter key. <strong>My data?</strong> Local-first: chats and settings live on your machine. <strong>Voice calling?</strong> Coming soon — dictation + spoken answers work now.</p></div>
+    </div>
+  </section>
+
+  <section class="dl reveal" id="download">
     <span class="ver">v1.0.0 · Windows 10/11 · free</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Take Hive home.</h2>
     <p class="lead" style="color:var(--dim);margin:14px auto 28px;max-width:520px;line-height:1.65;">Build the installer from source in one command, run it, enable the Buddy — done.</p>
     <div class="cta">
-      <a class="btn" href="#">Download Hive Setup</a>
+      <a class="btn" href="#waitlist">Download Hive Setup</a>
     </div>
     <p style="margin-top:16px;font-size:13px;color:var(--dim);font-family:ui-monospace,monospace;">npm run dist:win</p>
   </section>
 
-  <section class="section" id="soon" style="padding-top:32px;">
+  <section class="section reveal" id="soon" style="padding-top:32px;">
     <h2>Coming soon.</h2>
     <p class="lead">The next things landing in Hive.</p>
     <div class="grid">
@@ -180,7 +210,7 @@
     </div>
   </section>
 
-  <section class="dl" id="waitlist" style="padding:64px 0 32px;">
+  <section class="dl reveal" id="waitlist" style="padding:64px 0 32px;">
     <span class="ver">Join the waitlist</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Get Hive first.</h2>
     <p class="lead" style="color:var(--dim);margin:14px auto 24px;max-width:520px;line-height:1.65;">Installers, voice calling, and the web buddy — we will email you the moment each drops.</p>
@@ -192,7 +222,7 @@
     <p id="waitlist-done" style="display:none;margin-top:16px;color:var(--orange);font-size:14px;">✓ You are on the list. Watch your inbox.</p>
   </section>
 
-  <section class="section" id="team" style="padding-top:32px;">
+  <section class="section reveal" id="team" style="padding-top:32px;">
     <h2>Built by Apis.</h2>
     <p class="lead">Hive is designed, engineered, and shipped by <strong style="color:var(--text);">Apis</strong> — developer &amp; team behind the swarm. One crew, end to end: desktop app, buddy engine, browser bridge, and this page.</p>
   </section>
@@ -292,6 +322,22 @@
       google.accounts.id.renderButton(slot, { theme: 'filled_black', size: 'medium', text: 'signin_with', shape: 'pill' });
     }
     boot();
+  })();
+</script>
+<script>
+  /* scroll-reveal */
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
   })();
 </script>
 </body>
