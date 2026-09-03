@@ -85,7 +85,8 @@
   }
 
   /* shot */
-  .shot { margin: 56px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface-1); box-shadow: 0 40px 120px rgba(0,0,0,.8); }
+  .shot { margin: 56px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface-1); box-shadow: 0 40px 120px rgba(0,0,0,.8); position: relative; transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
+  .shot:hover { transform: translateY(-4px); box-shadow: 0 50px 140px rgba(0,0,0,.85), 0 0 60px rgba(240,138,36,.07); }
   .shot-bar { display: flex; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
   .shot-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); display: block; }
   .shot img { display: block; width: 100%; height: auto; }
@@ -114,11 +115,62 @@
   footer { border-top: 1px solid var(--line); padding: 28px 0 44px; display: flex; justify-content: space-between; color: var(--dim); font-size: 13px; flex-wrap: wrap; gap: 12px; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .mascot, .mascot .eyes, .buddy .mini, nav, .aura,
+    .mascot, .mascot .eyes, .buddy .mini, nav, .aura, .marquee-track, .chip-float,
     .hero h1, .hero .sub, .hero .cta, .hero .keys { animation: none !important; }
     .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   }
-  @media (max-width: 640px) { .nav-links { display: none; } .buddy { padding: 24px; } }
+  .shot img { display: block; width: 100%; height: auto; }
+  .chip-float { position: absolute; display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(10,10,12,.82); backdrop-filter: blur(8px); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 16px; font-size: 12.5px; font-weight: 600;
+    box-shadow: 0 12px 32px rgba(0,0,0,.6); animation: floaty 5s ease-in-out infinite; white-space: nowrap; }
+  .chip-float .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+  .chip-float.blue .dot { background: var(--link); }
+  .chip-float.green .dot { background: #10b981; }
+  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+  /* marquee */
+  .marquee { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    margin-top: 72px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+  .marquee-track { display: flex; gap: 0; width: max-content; padding: 16px 0;
+    animation: marquee 28s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  .marquee span { font-size: 13.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); padding: 0 28px; white-space: nowrap; }
+  .marquee span i { color: var(--orange); font-style: normal; margin-right: 28px; }
+
+  /* eyebrows + stats */
+  .eyebrow { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--orange); margin-bottom: 14px; }
+  .stats { display: flex; justify-content: center; gap: clamp(24px, 6vw, 72px); margin-top: 56px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat b { display: block; font-size: clamp(30px, 4.5vw, 44px); font-weight: 700; letter-spacing: -.02em; }
+  .stat span { font-size: 13px; color: var(--dim); }
+
+  /* footer columns */
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; padding: 40px 0 8px; }
+  .foot-grid h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-bottom: 12px; }
+  .foot-grid a { display: block; font-size: 13.5px; color: var(--dim); margin: 7px 0; }
+  .foot-grid a:hover { color: var(--text); }
+  .status-dot { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--dim); margin-top: 12px; }
+  .status-dot i { width: 8px; height: 8px; border-radius: 50%; background: #10b981;
+    box-shadow: 0 0 10px rgba(16,185,129,.8); animation: pulse 2s ease-in-out infinite; }
+
+  /* mobile menu */
+  #m-menu-btn { display: none; background: none; border: 1px solid var(--line); border-radius: 9px;
+    color: var(--text); font-size: 15px; padding: 5px 11px; cursor: pointer; }
+  #m-menu { display: none; }
+  @media (max-width: 640px) {
+    .nav-links { display: none; }
+    #m-menu-btn { display: block; }
+    #m-menu.open { display: flex; }
+    #m-menu { flex-direction: column; gap: 4px; margin-top: 10px; background: rgba(10,10,12,.95);
+      border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+    #m-menu a { color: var(--dim); font-size: 14px; padding: 9px 12px; border-radius: 9px; }
+    #m-menu a:hover, #m-menu a:active { background: var(--surface-1); color: var(--text); }
+  }
 </style>
 </head>
 <body>
@@ -138,7 +190,16 @@
     </div>
     <a class="btn" href="#download">Get Hive free</a>
     <span id="s-login" style="display:inline-flex;align-items:center;"></span>
+    <button id="m-menu-btn" aria-label="Menu">☰</button>
   </nav>
+  <div id="m-menu">
+    <a href="#features">Features</a>
+    <a href="#buddy">Buddy</a>
+    <a href="docs.html">Docs</a>
+    <a href="#soon">Coming soon</a>
+    <a href="#waitlist">Waitlist</a>
+    <a href="#download">Download</a>
+  </div>
 
   <header class="hero">
     <div class="aura"></div>
@@ -166,9 +227,25 @@
   <div class="shot reveal">
     <div class="shot-bar"><i></i><i></i><i></i></div>
     <img src="hive-screenshot.png" alt="Hive app — black chat workspace with the orange mascot" />
+    <span class="chip-float blue" style="top:22%;right:6%;"><span class="dot"></span>Cited sources</span>
+    <span class="chip-float" style="bottom:26%;left:5%;animation-delay:1.2s;"><span class="dot"></span>Buddy clicks your PC</span>
+    <span class="chip-float green" style="top:12%;left:8%;animation-delay:2.1s;"><span class="dot"></span>116 checks passing</span>
+  </div>
+
+  <div class="marquee reveal" aria-hidden="true">
+    <div class="marquee-track" id="marquee-track">
+      <span><i>●</i>Cited research</span><span><i>●</i>Code canvas</span><span><i>●</i>Agent swarm</span><span><i>●</i>Cursor buddy</span><span><i>●</i>Notch island</span><span><i>●</i>Voice in &amp; out</span><span><i>●</i>True-black UI</span><span><i>●</i>PC control</span>
+    </div>
+  </div>
+
+  <div class="stats reveal">
+    <div class="stat"><b><span class="count" data-to="116">0</span></b><span>automated checks passing</span></div>
+    <div class="stat"><b><span class="count" data-to="15">0</span></b><span>avatar engine states</span></div>
+    <div class="stat"><b><span class="count" data-to="4">0</span></b><span>ways Buddy acts on your PC</span></div>
   </div>
 
   <section class="section reveal" id="features">
+    <div class="eyebrow">Why Hive</div>
     <h2>One window. Every job.</h2>
     <p class="lead">Chat is the interface. Everything else — research, code, automation — happens inside the conversation.</p>
     <div class="grid">
@@ -191,6 +268,7 @@
   </section>
 
   <section class="section reveal" id="docs" style="padding-top:32px;">
+    <div class="eyebrow">Manual</div>
     <h2>Docs.</h2>
     <p class="lead">Everything you need in five minutes — <a href="docs.html">read the full manual →</a></p>
     <div class="grid">
@@ -214,6 +292,7 @@
   </section>
 
   <section class="section reveal" id="soon" style="padding-top:32px;">
+    <div class="eyebrow">Roadmap</div>
     <h2>Coming soon.</h2>
     <p class="lead">The next things landing in Hive.</p>
     <div class="grid">
@@ -241,8 +320,34 @@
   </section>
 
   <footer>
-    <span style="display:inline-flex;align-items:center;gap:8px;"><img src="logohive.png" alt="Hive logo" width="20" height="20" style="border-radius:5px;" /> Hive — by <strong style="color:var(--text);">Apis</strong></span>
-    <span>Black theme · Local-first · Made for doers.</span>
+    <div class="foot-grid">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--text);margin-bottom:10px;"><img src="logohive.png" alt="Hive logo" width="22" height="22" style="border-radius:6px;" /> Hive</div>
+        <div style="font-size:13px;max-width:260px;">The desktop AI that does things. By <strong style="color:var(--text);">Apis</strong>.</div>
+        <div class="status-dot"><i></i>All systems operational</div>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#buddy">Buddy</a>
+        <a href="#download">Download</a>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <a href="docs.html">Docs</a>
+        <a href="#soon">Roadmap</a>
+        <a href="#waitlist">Waitlist</a>
+      </div>
+      <div>
+        <h4>Team</h4>
+        <a href="#team">About Apis</a>
+        <a href="#waitlist">Contact via waitlist</a>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:22px;color:var(--dim);font-size:13px;flex-wrap:wrap;gap:12px;">
+      <span>Black theme · Local-first · Made for doers.</span>
+      <span>v1.0.0</span>
+    </div>
   </footer>
 </div>
 <script>
@@ -516,7 +621,7 @@
 </div>
 
 <script>
-  /* scroll-reveal with stagger */
+  /* scroll-reveal with stagger + counters + spy + mobile menu */
   (function () {
     var els = document.querySelectorAll('.reveal');
     // stagger cards inside each grid + buddy children of sections
@@ -526,14 +631,68 @@
         child.style.transitionDelay = ((i % 3) * 90) + 'ms';
       });
     });
+    // marquee: duplicate content for a seamless -50% loop
+    var track = document.getElementById('marquee-track');
+    if (track) track.innerHTML += track.innerHTML;
+    // animated counters (instant when reduced motion is preferred)
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function countUp(el) {
+      var to = parseInt(el.getAttribute('data-to') || '0', 10);
+      if (reduceMotion) { el.textContent = String(to); return; }
+      var t0 = null, dur = 1400;
+      function step(t) {
+        if (!t0) t0 = t;
+        var k = Math.min(1, (t - t0) / dur);
+        el.textContent = String(Math.round(to * (1 - Math.pow(1 - k, 3))));
+        if (k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    // nav spy
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]'));
+    var spyMap = {};
+    navLinks.forEach(function (a) { spyMap[a.getAttribute('href').slice(1)] = a; });
+    // mobile menu
+    var mb = document.getElementById('m-menu-btn');
+    var mm = document.getElementById('m-menu');
+    if (mb && mm) {
+      mb.addEventListener('click', function () { mm.classList.toggle('open'); });
+      mm.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') mm.classList.remove('open');
+      });
+    }
     var all = document.querySelectorAll('.reveal');
+    var counted = false;
     if (!('IntersectionObserver' in window)) {
       all.forEach(function (el) { el.classList.add('in'); });
+      document.querySelectorAll('.count').forEach(function (el) {
+        el.textContent = el.getAttribute('data-to');
+      });
       return;
     }
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          navLinks.forEach(function (a) { a.style.color = ''; });
+          var a = spyMap[en.target.id];
+          if (a) a.style.color = 'var(--text)';
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    Object.keys(spyMap).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) spy.observe(el);
+    });
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+          if (!counted && en.target.querySelector && en.target.querySelector('.count')) {
+            counted = true;
+            document.querySelectorAll('.count').forEach(countUp);
+          }
+        }
       });
     }, { threshold: 0.12 });
     all.forEach(function (el) { io.observe(el); });
