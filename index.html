@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Hive — the desktop AI that does things</title>
 <meta name="description" content="Hive is a black-theme desktop AI workspace: cited web research, code, a cursor buddy, a notch popover, and real PC control. Free, local-first, Windows." />
+<link rel="icon" type="image/png" href="logohive.png" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --bg: #000000;
@@ -95,10 +97,7 @@
 <div class="wrap">
   <nav>
     <div class="brand">
-      <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
-        <path d="M16 2L28 9V23L16 30L4 23V9L16 2Z" stroke="#f08a24" stroke-width="1.8"/>
-        <path d="M16 9L22 12.5V19.5L16 23L10 19.5V12.5L16 9Z" fill="#f08a24"/>
-      </svg>
+      <img src="logohive.png" alt="Hive logo" width="30" height="30" style="border-radius:7px;display:block;" />
       Hive
     </div>
     <div class="nav-links">
@@ -109,6 +108,7 @@
       <a href="#download">Download</a>
     </div>
     <a class="btn" href="#download">Get Hive free</a>
+    <span id="g-login" style="display:inline-flex;align-items:center;"></span>
   </nav>
 
   <header class="hero">
@@ -198,7 +198,7 @@
   </section>
 
   <footer>
-    <span>Hive — by <strong style="color:var(--text);">Apis</strong></span>
+    <span style="display:inline-flex;align-items:center;gap:8px;"><img src="logohive.png" alt="Hive logo" width="20" height="20" style="border-radius:5px;" /> Hive — by <strong style="color:var(--text);">Apis</strong></span>
     <span>Black theme · Local-first · Made for doers.</span>
   </footer>
 </div>
@@ -223,6 +223,75 @@
       if (done) done.style.display = 'block';
       form.reset();
     });
+  })();
+</script>
+<script>
+  /* Hive Google login (Google Identity Services).
+     1. Create a Web OAuth client at console.cloud.google.com/apis/credentials
+     2. Add authorized origin: https://samkomedved319-dev.github.io
+     3. Paste the client ID below and push. See README.md. */
+  var GOOGLE_CLIENT_ID = 'PASTE-YOUR-GOOGLE-CLIENT-ID.apps.googleusercontent.com';
+  (function () {
+    var slot = document.getElementById('g-login');
+    function chip(user) {
+      if (!slot) return;
+      slot.innerHTML = '';
+      var wrap = document.createElement('span');
+      wrap.style.cssText = 'display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 4px;font-size:13px;';
+      if (user.picture) {
+        var img = document.createElement('img');
+        img.src = user.picture; img.alt = ''; img.width = 24; img.height = 24;
+        img.style.cssText = 'border-radius:50%;display:block;';
+        wrap.appendChild(img);
+      }
+      var nm = document.createElement('span'); nm.textContent = user.name || user.email || 'Signed in';
+      wrap.appendChild(nm);
+      var out = document.createElement('button');
+      out.textContent = 'Sign out'; out.type = 'button';
+      out.style.cssText = 'background:none;border:none;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit;';
+      out.onclick = function () {
+        try { localStorage.removeItem('hive_google_user'); } catch (e) {}
+        try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+        location.reload();
+      };
+      wrap.appendChild(out);
+      slot.appendChild(wrap);
+    }
+    function parseJwt(t) {
+      try {
+        var p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(escape(atob(p))));
+      } catch (e) { return null; }
+    }
+    try {
+      var saved = JSON.parse(localStorage.getItem('hive_google_user') || 'null');
+      if (saved && saved.email) { chip(saved); return; }
+    } catch (e) {}
+    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf('PASTE-YOUR') === 0) {
+      if (slot) {
+        var b = document.createElement('button');
+        b.textContent = 'Sign in'; b.type = 'button'; b.className = 'btn ghost';
+        b.style.fontSize = '13px'; b.style.padding = '8px 16px';
+        b.title = 'Add your Google Client ID (see README.md) to enable login';
+        b.onclick = function () { alert('Google login needs a Client ID — see README.md (2-minute setup).'); };
+        slot.appendChild(b);
+      }
+      return;
+    }
+    function boot() {
+      if (!window.google || !google.accounts || !slot) { setTimeout(boot, 300); return; }
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: function (res) {
+          var u = parseJwt(res.credential) || {};
+          var user = { name: u.name, email: u.email, picture: u.picture };
+          try { localStorage.setItem('hive_google_user', JSON.stringify(user)); } catch (e) {}
+          chip(user);
+        }
+      });
+      google.accounts.id.renderButton(slot, { theme: 'filled_black', size: 'medium', text: 'signin_with', shape: 'pill' });
+    }
+    boot();
   })();
 </script>
 </body>
