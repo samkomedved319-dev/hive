@@ -1,0 +1,19 @@
+Hive Setup 0.0.1
+================
+Windows 10 / 11 · free preview
+
+This is the v0.0.1 site drop.
+
+Run from source
+---------------
+git clone https://github.com/samkomedved319-dev/hive
+cd hive
+npm install
+npm run dev
+
+Build a Windows installer
+-------------------------
+npm run dist:win
+
+Site: https://samkomedved319-dev.github.io/hive
+Docs: https://samkomedved319-dev.github.io/hive/docs.html
