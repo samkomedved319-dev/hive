@@ -1,65 +1,32 @@
-# Hive website — Supabase auth setup (5 minutes)
+# Hive website — live Supabase auth
 
-The nav has real email sign-in powered by Supabase. New accounts land as
-**pending** — you approve or deny them in the Supabase dashboard — and every
-account gets a sequential **customer number** (#1, #2, …) shown in its profile.
+The marketing site at [samkomedved319-dev.github.io/hive](https://samkomedved319-dev.github.io/hive) uses **Supabase email + password** login.
 
-## 1. Create the project
+- Project: **HiveWEB** (`nqkmnmwbmikbgopwkvse`, eu-west-1)
+- URL: `https://nqkmnmwbmikbgopwkvse.supabase.co`
+- Provider: Email (sign-up open, auto-confirm on)
+- New accounts land as **pending** in `public.profiles`
+- Each account gets a sequential **customer number** (`#1`, `#2`, …)
 
-1. Go to <https://supabase.com/dashboard> → New project (free tier is fine)
-2. Note the **Project URL** and **anon public key** (Settings → API)
+## What is wired
 
-## 2. Create the profiles table
+| Piece | Status |
+| --- | --- |
+| Email / password Auth | On |
+| Auto-confirm email | On |
+| `public.profiles` + RLS | On |
+| Trigger `on_auth_user_created` | Creates a pending profile on signup |
+| Site URL / redirect allowlist | GitHub Pages + localhost |
+| Site keys in `index.html` | Project URL + anon (public) key |
 
-SQL Editor → New query → paste, run:
+The anon key in `index.html` is the public browser key. Do **not** put the `service_role` key in the site.
 
-```sql
-create table public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text,
-  display_name text,
-  status text not null default 'pending'
-    check (status in ('pending', 'approved', 'denied')),
-  customer_number serial unique,
-  notify boolean not null default true,
-  created_at timestamptz not null default now()
-);
+## Approve members
 
-alter table public.profiles enable row level security;
+Supabase dashboard → Table Editor → `profiles` → set `status` to `approved` or `denied`.
 
-create policy "read own profile"
-  on public.profiles for select using (auth.uid() = id);
+Members can rename themselves, toggle email updates, and sign out from the avatar chip.
 
-create policy "create own profile"
-  on public.profiles for insert with check (auth.uid() = id);
+## Recreate the schema
 
-create policy "update own profile"
-  on public.profiles for update using (auth.uid() = id);
-```
-
-`customer_number` is a sequence: the first signup gets #1, the next #2 — that
-is the "sign-in number" shown in each profile. Statuses start at `pending`.
-
-## 3. Email sign-in settings (recommended)
-
-Authentication → Providers → Email: turn **Confirm email OFF** so new
-accounts can sign straight in (keep it ON if you prefer verified emails —
-the site shows a "check your inbox" message in that case).
-
-## 4. Wire the site
-
-In `index.html`, replace:
-
-```js
-var SUPABASE_URL = 'PASTE-YOUR-SUPABASE-URL';
-var SUPABASE_ANON_KEY = 'PASTE-YOUR-SUPABASE-ANON-KEY';
-```
-
-with your values. Commit + push — login lights up automatically. Until then,
-the Sign in button explains the setup instead of failing.
-
-## 5. Approving members
-
-Table Editor → `profiles` → flip `status` to `approved` (or `denied`).
-Members see their badge, number, join date, can rename themselves, toggle
-email updates, and sign out — all in the profile panel behind their avatar.
+If you spin up a new project, run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor, then paste the new project URL + anon key into `index.html`.
