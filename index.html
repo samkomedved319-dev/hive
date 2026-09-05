@@ -300,41 +300,12 @@
     <p class="keys">Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — the buddy pops, the app never opens.</p>
   </header>
 
-  <div class="hw reveal" id="hive-demo">
-    <div class="hw-dots"><i></i><i></i><i></i></div>
-    <div class="hw-row">
-      <aside class="hw-rail">
-        <img class="hex" src="logohive.png" alt="" width="32" height="32" />
-        <div class="ico on">☰</div>
-        <div class="ico">◫</div>
-        <div class="ico">★</div>
-        <div class="ico">☎</div>
-        <div class="sp"></div>
-        <div class="ico">⚙</div>
-        <div class="me">S</div>
-      </aside>
-      <aside class="hw-side">
-        <button class="hw-new" type="button" id="hw-new">+ New chat</button>
-        <div class="hw-lbl">TODAY</div>
-        <div class="hw-item">Hive Chat 1</div>
-      </aside>
-      <section class="hw-main">
-        <div class="hw-top"><span class="dotg"></span> Minimaxi M3 (Free) · Reasoning <span class="swarm">♛ Bots Swarm <i>●</i></span></div>
-        <div class="hw-msgs" id="hd-msgs"></div>
-        <div class="hw-sugs">
-          <button type="button" data-q="Take control: open Notepad on my PC">Open Notepad</button>
-          <button type="button" data-q="Search the web with cited sources">Cited sources</button>
-          <button type="button" data-q="Write a PowerShell one-liner">Write code</button>
-        </div>
-        <form class="hw-comp" id="hd-form">
-          <input id="hd-input" autocomplete="off" placeholder="Message Hive…" />
-          <button type="submit">Send</button>
-        </form>
-      </section>
-    </div>
-    <span class="chip-float green" style="top:14%;left:7%;"><span class="dot"></span>116 checks passing</span>
-    <span class="chip-float" style="bottom:22%;left:6%;animation-delay:1.1s;"><span class="dot"></span>Buddy clicks your PC</span>
-    <span class="chip-float blue" style="top:20%;right:5%;animation-delay:.6s;"><span class="dot"></span>Cited sources</span>
+  <div class="shot reveal">
+    <div class="shot-bar"><i></i><i></i><i></i></div>
+    <img src="hive-screenshot.png" alt="Hive app — black chat workspace with the orange mascot" />
+    <span class="chip-float blue" style="top:22%;right:6%;"><span class="dot"></span>Cited sources</span>
+    <span class="chip-float" style="bottom:26%;left:5%;animation-delay:1.2s;"><span class="dot"></span>Buddy clicks your PC</span>
+    <span class="chip-float green" style="top:12%;left:8%;animation-delay:2.1s;"><span class="dot"></span>116 checks passing</span>
   </div>
 
   <div class="marquee reveal" aria-hidden="true">
@@ -987,57 +958,5 @@
   })();
 </script>
 
-<script>
-(function () {
-  var box = document.getElementById('hd-msgs');
-  var form = document.getElementById('hd-form');
-  var input = document.getElementById('hd-input');
-  if (!box || !form) return;
-  function el(htmlx) { var d = document.createElement('div'); d.innerHTML = htmlx; box.appendChild(d.firstChild); box.scrollTop = box.scrollHeight; }
-  function you(t) { el('<div class="hw-you"></div>'); box.lastChild.textContent = t; }
-  function typing() { el('<div class="hw-type" id="hw-typing">Hive is working…</div>'); }
-  function clearTyping() { var t = document.getElementById('hw-typing'); if (t) t.remove(); }
-  function bot(htmlx) {
-    el('<div class="hw-ai"><div class="meta"><span class="av"></span> Hive (CEO & Head Architect)</div>' + htmlx + '</div>');
-  }
-  function reply(q) {
-    typing();
-    var l = (q || '').toLowerCase();
-    setTimeout(function () {
-      clearTyping();
-      if (l.indexOf('notepad') !== -1 || l.indexOf('control') !== -1)
-        bot('<p>On it — launching Notepad now.</p><div class="hw-ps"><b>POWERSHELL</b>Start-Process notepad</div><p>Done. Anything else?</p>');
-      else if (l.indexOf('search') !== -1 || l.indexOf('cited') !== -1 || l.indexOf('web') !== -1)
-        bot('<p>Pulled live sources.</p><div class="hw-ps"><b>CITED</b>desktop AI · local-first agents · PC control</div>');
-      else if (l.indexOf('code') !== -1 || l.indexOf('powershell') !== -1)
-        bot('<div class="hw-ps"><b>POWERSHELL</b>Get-Process | Sort CPU -Descending | Select -First 8</div>');
-      else
-        bot('<p>Got it. I can click, type, open apps, or search with citations.</p>');
-    }, 700);
-  }
-  function play() {
-    box.innerHTML = '';
-    setTimeout(function () { you('Take control: open Notepad on my PC'); }, 350);
-    setTimeout(function () { reply('open Notepad'); }, 1100);
-  }
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var q = (input.value || '').trim(); if (!q) return;
-    input.value = ''; you(q); reply(q);
-  });
-  document.querySelectorAll('.hw-sugs button').forEach(function (b) {
-    b.addEventListener('click', function () { var q = b.getAttribute('data-q'); you(q); reply(q); });
-  });
-  var neu = document.getElementById('hw-new');
-  if (neu) neu.addEventListener('click', play);
-  if ('IntersectionObserver' in window) {
-    var once = false, root = document.getElementById('hive-demo');
-    var io = new IntersectionObserver(function (ents) {
-      ents.forEach(function (en) { if (en.isIntersecting && !once) { once = true; play(); } });
-    }, { threshold: .2 });
-    if (root) io.observe(root);
-  } else play();
-})();
-</script>
 </body>
 </html>
