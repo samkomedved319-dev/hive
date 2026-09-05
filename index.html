@@ -86,38 +86,15 @@
 
   /* shot */
 
-  .hive-demo { margin: 56px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
-    background: #0c0d10; box-shadow: 0 40px 120px rgba(0,0,0,.8); min-height: 520px; display: flex; flex-direction: column; }
-  .hd-bar { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid #222; background:#12141a; }
-  .hd-bar i { width:10px; height:10px; border-radius:50%; background:#2a2d34; display:block; }
-  .hd-bar .ttl { margin-left:8px; font-size:12px; color:var(--dim); }
-  .hd-bar .pill { margin-left:auto; font-size:11px; border:1px solid #2a2d34; border-radius:999px; padding:3px 10px; color:#c9ccd1; }
-  .hd-bar .pill b { color:#10b981; }
-  .hd-body { display:flex; min-height:480px; flex:1; }
-  .hd-rail { width:52px; background:#0a0b0e; border-right:1px solid #1c1e24; display:flex; flex-direction:column; align-items:center; gap:10px; padding:12px 0; }
-  .hd-rail span { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; color:#8b9098; cursor:pointer; }
-  .hd-rail span.on, .hd-rail span:hover { background:#1a1c22; color:#fff; }
-  .hd-side { width:210px; background:#12141a; border-right:1px solid #1c1e24; padding:12px; display:flex; flex-direction:column; gap:8px; }
-  .hd-new { background:#1a1c22; border:1px solid #2a2d34; color:#e7e9ea; border-radius:10px; padding:8px 10px; font-size:12.5px; cursor:pointer; font-family:inherit; text-align:left; }
-  .hd-new:hover { border-color:#3a3f48; }
-  .hd-chat { background:#1a1c22; border:1px solid transparent; color:#e7e9ea; border-radius:10px; padding:8px 10px; font-size:12.5px; cursor:pointer; font-family:inherit; text-align:left; }
-  .hd-chat.on { border-color:#f08a24; background:#1e1810; }
-  .hd-main { flex:1; display:flex; flex-direction:column; min-width:0; background:#0c0d10; }
-  .hd-top { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid #1c1e24; font-size:12px; color:#c9ccd1; }
-  .hd-msgs { flex:1; overflow-y:auto; padding:18px 18px 8px; display:flex; flex-direction:column; gap:12px; min-height:280px; max-height:340px; }
-  .hd-you { align-self:flex-end; background:#1b1e26; border:1px solid #2a2d34; border-radius:16px 16px 4px 16px; padding:9px 13px; font-size:13.5px; max-width:78%; }
-  .hd-bot { font-size:13.5px; color:#d7d9dd; line-height:1.55; }
-  .hd-bot .who { font-size:11px; color:var(--dim); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
-  .hd-bot .av { width:18px; height:18px; border-radius:50%; background:#f08a24; display:inline-block; }
-  .hd-code { background:#14161c; border:1px solid #2a2d34; border-radius:10px; padding:10px 12px; margin-top:8px; font-family:ui-monospace,monospace; font-size:12px; color:#c9ccd1; }
-  .hd-code em { display:block; font-style:normal; font-size:10px; letter-spacing:.08em; color:#71767b; margin-bottom:4px; }
-  .hd-comp { padding:12px 14px 16px; border-top:1px solid #1c1e24; display:flex; gap:8px; }
-  .hd-comp input { flex:1; background:#16181f; border:1px solid #2a2d34; border-radius:14px; padding:11px 14px; color:#e7e9ea; font-size:13.5px; font-family:inherit; outline:none; }
-  .hd-comp button { background:#f08a24; border:none; border-radius:12px; padding:0 16px; font-weight:700; cursor:pointer; font-family:inherit; }
-  .hd-sugs { display:flex; gap:8px; flex-wrap:wrap; padding:0 14px 10px; }
-  .hd-sugs button { background:#16181f; border:1px solid #2a2d34; color:#c9ccd1; border-radius:999px; padding:6px 11px; font-size:12px; cursor:pointer; font-family:inherit; }
-  .hd-sugs button:hover { border-color:#f08a24; color:#fff; }
-  @media (max-width:720px) { .hd-side { display:none; } .hd-body { min-height:420px; } }
+  .shot-stage { position: relative; }
+  .shot-stage img { display: block; width: 100%; height: auto; }
+  .shot-live { position: absolute; left: 34%; right: 4%; top: 22%; bottom: 18%; overflow: auto; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 8px; }
+  .shot-live .hd-you { pointer-events: auto; align-self: flex-end; background: rgba(27,30,38,.92); border: 1px solid #2a2d34; border-radius: 14px 14px 4px 14px; padding: 8px 12px; font-size: 13px; max-width: 80%; color: #e7e9ea; }
+  .shot-live .hd-bot { pointer-events: auto; align-self: flex-start; background: rgba(12,13,16,.88); border: 1px solid #2a2d34; border-radius: 14px; padding: 8px 12px; font-size: 13px; max-width: 86%; color: #d7d9dd; }
+  .shot-comp { position: absolute; left: 32%; right: 6%; bottom: 5%; display: flex; gap: 8px; }
+  .shot-comp input { flex: 1; background: rgba(16,18,24,.92); border: 1px solid #2f3336; border-radius: 14px; padding: 10px 14px; color: #e7e9ea; font-size: 13.5px; font-family: inherit; outline: none; }
+  .shot-comp button { background: #f08a24; border: none; border-radius: 12px; padding: 0 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  @media (max-width: 720px) { .shot-live { left: 6%; top: 18%; bottom: 20%; } .shot-comp { left: 6%; } }
 
   .shot { margin: 56px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface-1); box-shadow: 0 40px 120px rgba(0,0,0,.8); position: relative; transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
   .shot:hover { transform: translateY(-4px); box-shadow: 0 50px 140px rgba(0,0,0,.85), 0 0 60px rgba(240,138,36,.07); }
@@ -286,33 +263,19 @@
     <p class="keys">Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — the buddy pops, the app never opens.</p>
   </header>
 
-  <div class="hive-demo reveal" id="hive-demo">
-    <div class="hd-bar"><i></i><i></i><i></i><span class="ttl">Hive</span><span class="pill"><b>●</b> 116 checks passing</span></div>
-    <div class="hd-body">
-      <div class="hd-rail">
-        <span class="on" title="Chat">☰</span>
-        <span title="Buddy">◐</span>
-        <span title="Workers">♛</span>
-      </div>
-      <div class="hd-side">
-        <button class="hd-new" type="button" id="hd-new">+ New chat</button>
-        <div style="font-size:10px;color:var(--dim);letter-spacing:.12em;margin:6px 2px 2px;">TODAY</div>
-        <button class="hd-chat on" type="button">Hive Chat 1</button>
-      </div>
-      <div class="hd-main">
-        <div class="hd-top"><span>◐</span> Minimaxi M3 (Free) · Reasoning <span style="margin-left:auto;font-size:11px;color:#10b981;">Bots Swarm</span></div>
-        <div class="hd-msgs" id="hd-msgs"></div>
-        <div class="hd-sugs">
-          <button type="button" data-q="Take control: open Notepad on my PC">Open Notepad</button>
-          <button type="button" data-q="Search the web for Hive desktop AI">Cited research</button>
-          <button type="button" data-q="Write a PowerShell one-liner to list running apps">Write code</button>
-        </div>
-        <form class="hd-comp" id="hd-form">
-          <input id="hd-input" autocomplete="off" placeholder="Message Hive…" />
-          <button type="submit">Send</button>
-        </form>
-      </div>
+  <div class="shot reveal" id="hive-demo">
+    <div class="shot-bar"><i></i><i></i><i></i></div>
+    <div class="shot-stage">
+      <img src="hive-screenshot.png" alt="Hive app — black chat workspace with the orange mascot" />
+      <div class="shot-live" id="hd-msgs"></div>
+      <form class="shot-comp" id="hd-form">
+        <input id="hd-input" autocomplete="off" placeholder="Message Hive…" />
+        <button type="submit">Send</button>
+      </form>
     </div>
+    <span class="chip-float blue" style="top:22%;right:6%;"><span class="dot"></span>Cited sources</span>
+    <span class="chip-float" style="bottom:26%;left:5%;animation-delay:1.2s;"><span class="dot"></span>Buddy clicks your PC</span>
+    <span class="chip-float green" style="top:12%;left:8%;animation-delay:2.1s;"><span class="dot"></span>116 checks passing</span>
   </div>
 
   <div class="marquee reveal" aria-hidden="true">
@@ -971,56 +934,20 @@
   var form = document.getElementById('hd-form');
   var input = document.getElementById('hd-input');
   if (!box || !form) return;
-  function addYou(t) {
-    var d = document.createElement('div'); d.className = 'hd-you'; d.textContent = t; box.appendChild(d); box.scrollTop = box.scrollHeight;
-  }
-  function addBot(htmlx) {
-    var d = document.createElement('div'); d.className = 'hd-bot';
-    d.innerHTML = '<div class="who"><span class="av"></span> Hive (CEO & Head Architect)</div>' + htmlx;
-    box.appendChild(d); box.scrollTop = box.scrollHeight;
-  }
+  function addYou(t) { var d = document.createElement('div'); d.className = 'hd-you'; d.textContent = t; box.appendChild(d); box.scrollTop = box.scrollHeight; }
+  function addBot(t) { var d = document.createElement('div'); d.className = 'hd-bot'; d.textContent = t; box.appendChild(d); box.scrollTop = box.scrollHeight; }
   function reply(q) {
     var l = q.toLowerCase();
-    if (l.indexOf('notepad') !== -1 || l.indexOf('control') !== -1) {
-      addBot('On it — launching Notepad now.<div class="hd-code"><em>POWERSHELL</em>Start-Process notepad</div>Done. Anything else?');
-    } else if (l.indexOf('search') !== -1 || l.indexOf('research') !== -1 || l.indexOf('web') !== -1) {
-      addBot('Pulled live sources.<div class="hd-code"><em>CITED</em>x.ai · desktop AI workspaces · local-first agents</div>Want me to open any of these?');
-    } else if (l.indexOf('code') !== -1 || l.indexOf('powershell') !== -1) {
-      addBot('Here you go.<div class="hd-code"><em>POWERSHELL</em>Get-Process | Sort-Object CPU -Descending | Select -First 8</div>');
-    } else {
-      addBot('Got it. I can click, type, open apps, or search with citations — try “open Notepad”.');
-    }
-  }
-  function play() {
-    box.innerHTML = '';
-    setTimeout(function () { addYou('Take control: open Notepad on my PC'); }, 400);
-    setTimeout(function () { addBot('On it — launching Notepad now.<div class="hd-code"><em>POWERSHELL</em>Start-Process notepad</div>Done. Anything else?'); }, 1400);
+    if (l.indexOf('notepad') !== -1 || l.indexOf('control') !== -1) addBot('On it — launching Notepad now. Start-Process notepad. Done.');
+    else if (l.indexOf('search') !== -1 || l.indexOf('web') !== -1) addBot('Pulled cited sources. Want me to open one?');
+    else if (l.indexOf('code') !== -1) addBot('Get-Process | Sort-Object CPU -Descending | Select -First 8');
+    else addBot('Got it. Try “open Notepad on my PC”.');
   }
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var q = (input.value || '').trim();
-    if (!q) return;
-    input.value = '';
-    addYou(q);
-    setTimeout(function () { reply(q); }, 500);
+    var q = (input.value || '').trim(); if (!q) return; input.value = '';
+    addYou(q); setTimeout(function () { reply(q); }, 450);
   });
-  document.querySelectorAll('.hd-sugs button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var q = b.getAttribute('data-q');
-      addYou(q);
-      setTimeout(function () { reply(q); }, 500);
-    });
-  });
-  var neu = document.getElementById('hd-new');
-  if (neu) neu.addEventListener('click', play);
-  if ('IntersectionObserver' in window) {
-    var once = false;
-    var io = new IntersectionObserver(function (ents) {
-      ents.forEach(function (en) { if (en.isIntersecting && !once) { once = true; play(); } });
-    }, { threshold: .25 });
-    var root = document.getElementById('hive-demo');
-    if (root) io.observe(root);
-  } else play();
 })();
 </script>
 </body>
