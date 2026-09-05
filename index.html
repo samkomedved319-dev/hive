@@ -162,6 +162,32 @@
   #m-menu-btn { display: none; background: none; border: 1px solid var(--line); border-radius: 9px;
     color: var(--text); font-size: 15px; padding: 5px 11px; cursor: pointer; }
   #m-menu { display: none; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+    opacity: .035; mix-blend-mode: overlay;
+  }
+  .wrap { position: relative; z-index: 1; }
+  .btn { transition: transform .28s var(--ease), box-shadow .28s var(--ease), background .28s; }
+  .btn:hover { box-shadow: 0 10px 30px rgba(255,255,255,.08); }
+  .card { transition: transform .4s var(--ease), border-color .4s, box-shadow .4s; }
+  .card:hover { box-shadow: 0 18px 50px rgba(0,0,0,.45); }
+  .modal-card { animation: popIn .38s var(--ease) both; }
+  @keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+  .drawer { animation: slideIn .42s var(--ease) both; }
+  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  #auth-modal, #profile-panel { animation: fadeScrim .28s var(--ease) both; }
+  @keyframes fadeScrim { from { opacity: 0; } to { opacity: 1; } }
+  .wait-pill { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line);
+    background: rgba(240,138,36,.08); color: var(--text); border-radius:999px; padding:8px 14px;
+    font-size:13px; font-weight:600; }
+  .wait-pill b { color: var(--orange); font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) {
+    .modal-card, .drawer, #auth-modal, #profile-panel { animation: none !important; }
+  }
+
   @media (max-width: 640px) {
     .nav-links { display: none; }
     #m-menu-btn { display: block; }
@@ -305,9 +331,10 @@
   </section>
 
   <section class="dl reveal" id="waitlist" style="padding:64px 0 32px;">
-    <span class="ver">Join the waitlist</span>
+    <span class="ver">Waitlist</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Get Hive first.</h2>
-    <p class="lead" style="color:var(--dim);margin:14px auto 24px;max-width:520px;line-height:1.65;">Installers, voice calling, and the web buddy — we will email you the moment each drops.</p>
+    <p class="lead" style="color:var(--dim);margin:14px auto 18px;max-width:520px;line-height:1.65;">Create an account and you land on the waitlist. We’ll email you when your spot opens.</p>
+    <p class="wait-pill" id="waitlist-count-pill" style="margin:0 auto 22px;"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--orange);display:inline-block;"></span><span id="waitlist-count-label">Loading the queue…</span></p>
     <form id="waitlist-form" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <input id="waitlist-email" type="email" required placeholder="you@example.com"
         style="background:var(--surface-1);border:1px solid var(--line);border-radius:999px;padding:11px 20px;color:var(--text);font-size:14px;outline:none;width:min(320px,80vw);font-family:inherit;" />
@@ -365,13 +392,11 @@
       ev.preventDefault();
       var email = (input.value || '').trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { input.focus(); return; }
-      try {
-        var list = JSON.parse(localStorage.getItem('hive_waitlist') || '[]');
-        if (list.indexOf(email) === -1) list.push(email);
-        localStorage.setItem('hive_waitlist', JSON.stringify(list));
-      } catch (e) {}
-      if (done) done.style.display = 'block';
-      form.reset();
+      var up = document.getElementById('auth-up-email');
+      if (up) up.value = email;
+      if (typeof switchAuthTab === 'function') switchAuthTab('up');
+      if (typeof openAuth === 'function') openAuth();
+      if (done) { done.style.display = 'block'; done.textContent = 'Finish creating your account to join the waitlist.'; }
     });
   })();
 </script>
@@ -386,8 +411,31 @@
     }
   } catch (e) { sb = null; }
 
+
+  window._hiveWait = { total: 0, waiting: 0 };
+  async function loadWaitlistStats() {
+    var label = document.getElementById('waitlist-count-label');
+    var totalEl = document.getElementById('pf-wait-total');
+    try {
+      if (!sb) throw new Error('no sb');
+      var r = await sb.rpc('waitlist_stats');
+      var d = r.data || {};
+      window._hiveWait = { total: Number(d.total || 0), waiting: Number(d.waiting || 0) };
+    } catch (e) {
+      window._hiveWait = window._hiveWait || { total: 0, waiting: 0 };
+    }
+    var w = window._hiveWait.waiting;
+    if (label) {
+      if (w === 1) label.textContent = '1 person is on the waitlist';
+      else label.textContent = w + ' people are on the waitlist';
+    }
+    if (totalEl && document.getElementById('profile-panel') && document.getElementById('profile-panel').style.display === 'flex') {
+      totalEl.textContent = String(w);
+    }
+  }
+
   var STATUS_STYLE = {
-    pending: { label: 'Pending review', color: '#F2C14E', bg: 'rgba(242,193,78,.12)' },
+    pending: { label: 'On the waitlist', color: '#F2C14E', bg: 'rgba(242,193,78,.12)' },
     approved: { label: 'Approved', color: '#10B981', bg: 'rgba(16,185,129,.12)' },
     denied: { label: 'Denied', color: '#F04438', bg: 'rgba(240,68,56,.12)' }
   };
@@ -503,6 +551,7 @@
         return;
       }
       var profile = await ensureProfile(r.data.user, name);
+      await loadWaitlistStats();
       sbProfileChip(r.data.user, profile);
       closeAuth();
       openProfile(r.data.user, profile);
@@ -524,10 +573,20 @@
     var badge = document.getElementById('pf-status');
     badge.textContent = st.label;
     badge.style.color = st.color; badge.style.background = st.bg;
-    document.getElementById('pf-number').textContent = profile.customer_number ? ('#' + profile.customer_number) : '—';
-    document.getElementById('pf-since').textContent = profile.created_at
-      ? ('Member since ' + new Date(profile.created_at).toLocaleDateString())
-      : '';
+    var totalEl = document.getElementById('pf-wait-total');
+    if (totalEl) totalEl.textContent = (window._hiveWait && window._hiveWait.waiting != null) ? String(window._hiveWait.waiting) : '—';
+    var since = document.getElementById('pf-since');
+    if (profile.status === 'pending') {
+      since.textContent = profile.created_at
+        ? ('Joined the waitlist ' + new Date(profile.created_at).toLocaleDateString())
+        : 'You are on the waitlist.';
+    } else if (profile.status === 'approved') {
+      since.textContent = 'You are in. Watch your inbox for the drop.';
+    } else {
+      since.textContent = profile.created_at
+        ? ('Joined ' + new Date(profile.created_at).toLocaleDateString())
+        : '';
+    }
     document.getElementById('pf-notify').checked = profile.notify !== false;
     p.dataset.uid = user.id;
     p.style.display = 'flex';
@@ -567,10 +626,11 @@
   }
 
   refreshSession();
+  loadWaitlistStats();
 </script>
 <!-- Auth modal -->
 <div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeAuth()">
-  <div style="width:min(380px,92vw);background:var(--surface-1);border:1px solid var(--line);border-radius:18px;padding:28px;">
+  <div class="modal-card" style="width:min(380px,92vw);background:var(--surface-1);border:1px solid var(--line);border-radius:18px;padding:28px;">
     <div style="display:flex;gap:18px;margin-bottom:20px;font-size:14px;font-weight:600;">
       <button id="tab-in" type="button" onclick="switchAuthTab('in')" style="background:none;border:none;border-bottom:2px solid var(--orange);padding-bottom:6px;color:var(--text);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;">Sign in</button>
       <button id="tab-up" type="button" onclick="switchAuthTab('up')" style="background:none;border:none;border-bottom:2px solid transparent;padding-bottom:6px;color:var(--dim);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;">Create account</button>
@@ -593,7 +653,7 @@
 
 <!-- Profile panel -->
 <div id="profile-panel" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);justify-content:flex-end;" onclick="if(event.target===this)closeProfile()">
-  <div style="width:min(340px,90vw);height:100%;background:var(--surface-1);border-left:1px solid var(--line);padding:28px 24px;overflow-y:auto;">
+  <div class="drawer" style="width:min(340px,90vw);height:100%;background:var(--surface-1);border-left:1px solid var(--line);padding:28px 24px;overflow-y:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
       <span style="font-size:15px;font-weight:700;">Profile settings</span>
       <button type="button" onclick="closeProfile()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;">✕</button>
@@ -604,8 +664,8 @@
       <span id="pf-status" style="font-size:11.5px;font-weight:700;padding:3px 12px;border-radius:999px;">Pending review</span>
     </div>
     <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px;text-align:center;">
-      <div id="pf-number" style="font-size:34px;font-weight:700;color:var(--orange);">—</div>
-      <div style="font-size:12px;color:var(--dim);margin-top:2px;">your sign-in number</div>
+      <div id="pf-wait-total" style="font-size:34px;font-weight:700;color:var(--orange);">—</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:2px;">people on the waitlist</div>
       <div id="pf-since" style="font-size:12px;color:var(--dim);margin-top:6px;"></div>
     </div>
     <label style="font-size:12.5px;color:var(--dim);display:block;margin-bottom:6px;">Display name</label>
