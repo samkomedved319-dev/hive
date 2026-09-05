@@ -101,7 +101,6 @@
   .card .ic { font-size: 26px; }
   .card h3 { font-size: 17px; margin: 14px 0 8px; }
   .card p { font-size: 14px; color: var(--dim); line-height: 1.65; }
-  a.card { color: inherit; text-decoration: none; display: block; }
   .card code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; color: var(--text); }
 
   /* buddy strip */
@@ -247,7 +246,7 @@
     <h1>The desktop AI<br/>that <span class="o">does things.</span></h1>
     <p class="sub">Hive is a black-theme AI workspace for Windows: cited web research, code, a multi-agent swarm — plus a cursor buddy and a notch popover that can actually click, type, and open apps on your PC.</p>
     <div class="cta">
-      <a class="btn" href="Hive-Setup-0.0.1.txt" download="Hive-Setup-0.0.1.txt">Download for Windows</a>
+      <a class="btn" href="#waitlist">Download for Windows</a>
       <a class="btn ghost" href="#features">See how it works</a>
     </div>
     <p class="keys">Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — the buddy pops, the app never opens.</p>
@@ -301,24 +300,23 @@
     <h2>Docs.</h2>
     <p class="lead">Everything you need in five minutes — <a href="docs.html">read the full manual →</a></p>
     <div class="grid">
-      <a class="card" href="docs.html#quickstart"><div class="ic">🚀</div><h3>Quickstart</h3><p>Clone the repo, <code>npm install</code>, <code>npm run dev</code> for daily use or <code>npm run dist:win</code> for the installer. Add your OpenRouter key in Settings → Models. Done.</p></a>
-      <a class="card" href="docs.html#buddy"><div class="ic">🟠</div><h3>Buddy</h3><p>Settings → General → Hive Buddy at Cursor. The orange companion trails your mouse on every screen and hides whenever Hive hides. Pick its model and ink in the same place.</p></a>
-      <a class="card" href="docs.html#notch"><div class="ic">⬛</div><h3>Notch</h3><p>Press <code>Ctrl+Shift+J</code> anywhere: a pill pops at the top of your screen and expands into the Buddy panel. Ask, dictate with 🎙, or run <code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code>. <code>Esc</code> dismisses.</p></a>
-      <a class="card" href="docs.html#pc"><div class="ic">🖱️</div><h3>PC control</h3><p>The buddy opens apps and URLs, runs PowerShell, clicks window coordinates, and types into the focused window. Destructive shell commands are blocked by policy; every action lands in the overlay audit log.</p></a>
-      <a class="card" href="docs.html#swarm"><div class="ic">👑</div><h3>Swarm</h3><p>Rail → Workers opens the roster in the main view. Chat live with any bot, create custom workers, remove the ones you outgrew. Chats persist per conversation in the sidebar.</p></a>
-      <a class="card" href="docs.html#faq"><div class="ic">❓</div><h3>FAQ</h3><p><strong>Windows only?</strong> Yes, today. <strong>Free?</strong> Yes — bring your own OpenRouter key. <strong>My data?</strong> Local-first: chats and settings live on your machine. <strong>Voice calling?</strong> Coming soon — dictation + spoken answers work now.</p></a>
+      <a class="card" href="docs.html#quickstart"><div class="ic">🚀</div><h3>Get Hive</h3><p>Download Setup from this site. Add your OpenRouter key in Settings → Models, then turn on Hive Buddy at Cursor.</p></a>
+      <div class="card"><div class="ic">🟠</div><h3>Buddy</h3><p>Settings → General → Hive Buddy at Cursor. The orange companion trails your mouse on every screen and hides whenever Hive hides. Pick its model and ink in the same place.</p></div>
+      <div class="card"><div class="ic">⬛</div><h3>Notch</h3><p>Press <code>Ctrl+Shift+J</code> anywhere: a pill pops at the top of your screen and expands into the Buddy panel. Ask, dictate with 🎙, or run <code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code>. <code>Esc</code> dismisses.</p></div>
+      <div class="card"><div class="ic">🖱️</div><h3>PC control</h3><p>The buddy opens apps and URLs, runs PowerShell, clicks window coordinates, and types into the focused window. Destructive shell commands are blocked by policy; every action lands in the overlay audit log.</p></div>
+      <div class="card"><div class="ic">👑</div><h3>Swarm</h3><p>Rail → Workers opens the roster in the main view. Chat live with any bot, create custom workers, remove the ones you outgrew. Chats persist per conversation in the sidebar.</p></div>
+      <div class="card"><div class="ic">❓</div><h3>FAQ</h3><p><strong>Windows only?</strong> Yes, today. <strong>Free?</strong> Yes — bring your own OpenRouter key. <strong>My data?</strong> Local-first: chats and settings live on your machine. <strong>Voice calling?</strong> Coming soon — dictation + spoken answers work now.</p></div>
     </div>
   </section>
 
   <section class="dl reveal" id="download">
     <span class="ver">v0.0.1 · Windows 10/11 · free</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Take Hive home.</h2>
-    <p class="lead" style="color:var(--dim);margin:14px auto 28px;max-width:520px;line-height:1.65;">Build the installer from source in one command, run it, enable the Buddy — done.</p>
+    <p class="lead" style="color:var(--dim);margin:14px auto 28px;max-width:520px;line-height:1.65;">Windows 10/11 preview. Download Setup, then enable the Buddy in Settings.</p>
     <div class="cta">
-      <a class="btn" href="Hive-Setup-0.0.1.txt" download="Hive-Setup-0.0.1.txt">Download Hive Setup</a>
-      <a class="btn ghost" href="https://github.com/samkomedved319-dev/hive">View source</a>
+      <a class="btn" href="#waitlist">Download Hive Setup</a>
     </div>
-    <p style="margin-top:16px;font-size:13px;color:var(--dim);">Hive <strong style="color:var(--text);">v0.0.1</strong> · Windows 10/11 · <code>npm run dist:win</code></p>
+    <p style="margin-top:16px;font-size:13px;color:var(--dim);font-family:ui-monospace,monospace;">npm run dist:win</p>
   </section>
 
   <section class="section reveal" id="soon" style="padding-top:32px;">
@@ -326,9 +324,9 @@
     <h2>Coming soon.</h2>
     <p class="lead">The next things landing in Hive.</p>
     <div class="grid">
-      <div class="card"><div class="ic">📞</div><h3>Voice calling <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Full duplex voice calls with Hive and your bots. Today: push-to-talk dictation, spoken answers, and Telegram messaging.</p><p style="margin-top:14px;"><a class="btn ghost" href="#waitlist" style="font-size:13px;">Get notified</a></p></div>
-      <div class="card"><div class="ic">🟠</div><h3>Buddy everywhere <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>The cursor buddy is coming to the web: the same orange companion, the same notch, right in your browser.</p><p style="margin-top:14px;"><a class="btn ghost" href="#waitlist" style="font-size:13px;">Get notified</a></p></div>
-      <div class="card"><div class="ic">📱</div><h3>Mobile <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Hive on the go — chat, swarm, and buddy status from your pocket.</p><p style="margin-top:14px;"><a class="btn ghost" href="#waitlist" style="font-size:13px;">Get notified</a></p></div>
+      <div class="card"><div class="ic">📞</div><h3>Voice calling <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Full duplex voice calls with Hive and your bots. Today: push-to-talk dictation, spoken answers, and Telegram messaging.</p></div>
+      <div class="card"><div class="ic">🟠</div><h3>Buddy everywhere <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>The cursor buddy is coming to the web: the same orange companion, the same notch, right in your browser.</p></div>
+      <div class="card"><div class="ic">📱</div><h3>Mobile <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Hive on the go — chat, swarm, and buddy status from your pocket.</p></div>
     </div>
   </section>
 
