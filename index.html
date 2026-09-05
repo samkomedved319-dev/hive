@@ -4,10 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Hive — the desktop AI that does things</title>
-<meta name="description" content="Hive is a black-theme desktop AI workspace: cited web research, code, a cursor buddy, a notch popover, and real PC control. Free, local-first, Windows." />
+<meta name="description" content="Hive is a black-theme desktop AI workspace for Windows: cited research, a concurrent swarm, a cursor buddy, and real PC control. Invite-only preview." />
 <link rel="icon" type="image/png" href="logohive.png" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+
   :root {
     --bg: #000000;
     --surface-1: #16181c;
@@ -20,6 +21,7 @@
     --ease: cubic-bezier(.16, .8, .24, 1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
     background: var(--bg);
     color: var(--text);
@@ -28,176 +30,117 @@
     overflow-x: hidden;
   }
   a { color: var(--link); text-decoration: none; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-
-  /* nav */
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
   nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px;
     position: sticky; top: 12px; z-index: 40; background: rgba(10,10,12,.78);
-    backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; }
+    backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; gap: 10px; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
-  .brand svg { display: block; }
-  .nav-links { display: flex; gap: 26px; font-size: 14px; color: var(--dim); }
+  .ver { font-size: 11px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+  .nav-links { display: flex; gap: 22px; font-size: 14px; color: var(--dim); }
   .nav-links a { color: var(--dim); }
   .nav-links a:hover { color: var(--text); }
   .btn {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     background: #fff; color: #000; font-weight: 600; font-size: 14px;
     padding: 10px 20px; border-radius: 999px; border: none; cursor: pointer;
-    position: relative; overflow: hidden;
+    position: relative; overflow: hidden; font-family: inherit;
+    transition: transform .28s var(--ease), box-shadow .28s var(--ease);
   }
   .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
-  .btn:hover { transform: translateY(-1px); }
-  .btn::after { content: ''; position: absolute; top: 0; left: -70%; width: 45%; height: 100%;
-    background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
-    transform: skewX(-20deg); transition: left .65s var(--ease); pointer-events: none; }
-  .btn:hover::after { left: 135%; }
-
-  /* hero */
-  .hero { text-align: center; padding: 84px 0 40px; position: relative; }
-  .aura { position: absolute; left: 50%; top: 40px; width: 340px; height: 340px;
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(255,255,255,.08); }
+  .btn:active { transform: scale(.96); }
+  .hero { text-align: center; padding: 72px 0 24px; position: relative; }
+  .aura { position: absolute; left: 50%; top: 24px; width: 340px; height: 340px;
     transform: translateX(-50%); border-radius: 50%; pointer-events: none;
     background: radial-gradient(circle, rgba(240,138,36,.16) 0%, rgba(240,138,36,0) 65%);
     animation: auraPulse 5s ease-in-out infinite; }
   @keyframes auraPulse { 0%, 100% { opacity: .7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.12); } }
-  html { scroll-behavior: smooth; }
-  .mascot { width: 120px; height: 120px; margin: 0 auto 28px; }
-  /* scroll-reveal + entrance motion */
-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
-  .reveal.in { opacity: 1; transform: none; }
-  @keyframes heroIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  .hero .mascot { animation: breathe 4.2s ease-in-out infinite, heroIn .8s var(--ease) both; }
-  .hero h1 { animation: heroIn .8s var(--ease) .1s both; }
-  .hero .sub { animation: heroIn .8s var(--ease) .22s both; }
-  .hero .cta { animation: heroIn .8s var(--ease) .34s both; }
-  .hero .keys { animation: heroIn .8s var(--ease) .44s both; }
-  nav { animation: heroIn .7s var(--ease) both; }
-  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  .mascot { width: 96px; height: 96px; margin: 0 auto 22px; animation: breathe 4.2s ease-in-out infinite, heroIn .8s var(--ease) both; }
   .mascot .eyes { animation: blink 4.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95.5% { transform: scaleY(.08); } }
-  h1 { font-size: clamp(38px, 6vw, 64px); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  @keyframes heroIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  h1 { font-size: clamp(38px, 6vw, 64px); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; animation: heroIn .8s var(--ease) .1s both; }
   h1 .o { color: var(--orange); }
-  .sub { color: var(--dim); font-size: clamp(15px, 2.4vw, 19px); line-height: 1.6; max-width: 620px; margin: 20px auto 32px; }
-  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .keys { margin-top: 18px; font-size: 13px; color: var(--dim); }
-  .keys kbd {
+  .sub { color: var(--dim); font-size: clamp(15px, 2.4vw, 19px); line-height: 1.6; max-width: 620px; margin: 20px auto 32px; animation: heroIn .8s var(--ease) .22s both; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; animation: heroIn .8s var(--ease) .34s both; }
+  .keys { margin-top: 18px; font-size: 13px; color: var(--dim); animation: heroIn .8s var(--ease) .44s both; }
+  .keys kbd, kbd {
     font-family: ui-monospace, monospace; font-size: 12px; background: var(--surface-1);
     border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--text);
   }
-
-  /* shot */
-
-  .shot-stage { position: relative; }
-  .shot-stage img { display: block; width: 100%; height: auto; }
-  .shot-live { position: absolute; left: 34%; right: 4%; top: 22%; bottom: 18%; overflow: auto; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 8px; }
-  .shot-live .hd-you { pointer-events: auto; align-self: flex-end; background: rgba(27,30,38,.92); border: 1px solid #2a2d34; border-radius: 14px 14px 4px 14px; padding: 8px 12px; font-size: 13px; max-width: 80%; color: #e7e9ea; }
-  .shot-live .hd-bot { pointer-events: auto; align-self: flex-start; background: rgba(12,13,16,.88); border: 1px solid #2a2d34; border-radius: 14px; padding: 8px 12px; font-size: 13px; max-width: 86%; color: #d7d9dd; }
-  .shot-comp { position: absolute; left: 32%; right: 6%; bottom: 5%; display: flex; gap: 8px; }
-  .shot-comp input { flex: 1; background: rgba(16,18,24,.92); border: 1px solid #2f3336; border-radius: 14px; padding: 10px 14px; color: #e7e9ea; font-size: 13.5px; font-family: inherit; outline: none; }
-  .shot-comp button { background: #f08a24; border: none; border-radius: 12px; padding: 0 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
-  @media (max-width: 720px) { .shot-live { left: 6%; top: 18%; bottom: 20%; } .shot-comp { left: 6%; } }
-
-
-  .hw { margin: 56px auto 0; border: 1px solid #2a2d33; border-radius: 18px; overflow: hidden;
-    background: #0b0c10; box-shadow: 0 40px 120px rgba(0,0,0,.85), 0 0 80px rgba(240,138,36,.06); position: relative; }
-  .hw-dots { display:flex; gap:7px; padding:12px 16px; background:#12141a; border-bottom:1px solid #22252b; }
-  .hw-dots i { width:11px; height:11px; border-radius:50%; background:#2a2d34; display:block; }
-  .hw-row { display:flex; min-height:540px; }
-  .hw-rail { width:56px; background:#0a0b0e; border-right:1px solid #1b1d23; display:flex; flex-direction:column; align-items:center; padding:12px 0 14px; gap:8px; }
-  .hw-rail .ico { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#8b9098; font-size:14px; cursor:default; }
-  .hw-rail .ico.on { background:#1a1c22; color:#fff; }
-  .hw-rail .hex { width:32px; height:32px; border-radius:9px; overflow:hidden; }
-  .hw-rail .sp { flex:1; }
-  .hw-rail .me { width:30px; height:30px; border-radius:50%; background:#f2c14e; color:#111; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
-  .hw-side { width:220px; background:#12141a; border-right:1px solid #1b1d23; padding:12px 10px; }
-  .hw-new { width:100%; background:#1a1c22; border:1px solid #2a2d34; color:#e7e9ea; border-radius:10px; padding:8px 10px; font:600 12.5px inherit; text-align:left; cursor:pointer; }
-  .hw-lbl { font-size:10px; letter-spacing:.14em; color:#71767b; margin:14px 4px 6px; }
-  .hw-item { width:100%; background:#1a1c22; border:1px solid #f08a24; color:#e7e9ea; border-radius:10px; padding:8px 10px; font:12.5px inherit; text-align:left; }
-  .hw-main { flex:1; display:flex; flex-direction:column; min-width:0; background:#0b0c10; }
-  .hw-top { display:flex; align-items:center; gap:8px; padding:10px 16px; border-bottom:1px solid #1b1d23; font-size:12px; color:#c9ccd1; }
-  .hw-top .dotg { width:7px; height:7px; border-radius:50%; background:#f2c14e; display:inline-block; }
-  .hw-top .swarm { margin-left:auto; font-size:11.5px; color:#d7d9dd; }
-  .hw-top .swarm i { color:#10b981; }
-  .hw-msgs { flex:1; padding:22px 22px 10px; overflow:auto; display:flex; flex-direction:column; gap:14px; min-height:320px; }
-  .hw-you { align-self:flex-end; background:#1b1e26; border:1px solid #2a2d34; border-radius:16px 16px 6px 16px; padding:10px 14px; font-size:13.5px; max-width:70%; }
-  .hw-ai .meta { display:flex; align-items:center; gap:8px; font-size:11.5px; color:#8b9098; margin-bottom:6px; }
-  .hw-ai .av { width:22px; height:22px; border-radius:50%; background:#f08a24; display:inline-block; }
-  .hw-ai p { font-size:14px; line-height:1.55; color:#d7d9dd; margin:0 0 8px; }
-  .hw-ps { background:#14161c; border:1px solid #2a2d34; border-radius:12px; padding:10px 12px; font-family:ui-monospace,monospace; font-size:12.5px; color:#c9ccd1; max-width:420px; }
-  .hw-ps b { display:block; font-size:10px; letter-spacing:.12em; color:#71767b; font-weight:600; margin-bottom:4px; }
-  .hw-type { color:#71767b; font-size:13px; }
-  .hw-sugs { display:flex; gap:8px; flex-wrap:wrap; padding:0 18px 8px; }
-  .hw-sugs button { background:#16181f; border:1px solid #2a2d34; color:#c9ccd1; border-radius:999px; padding:6px 12px; font:12px inherit; cursor:pointer; }
-  .hw-sugs button:hover { border-color:#f08a24; color:#fff; }
-  .hw-comp { margin:8px 16px 16px; background:#16181f; border:1px solid #2a2d34; border-radius:18px; display:flex; align-items:center; padding:4px 6px 4px 14px; }
-  .hw-comp input { flex:1; background:transparent; border:0; color:#e7e9ea; font:13.5px inherit; outline:none; padding:10px 0; }
-  .hw-comp button { background:#f08a24; border:0; border-radius:12px; padding:8px 14px; font:700 13px inherit; cursor:pointer; }
-  @media (max-width:800px){ .hw-side{display:none;} .hw-row{min-height:460px;} }
-
-  .shot { margin: 56px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface-1); box-shadow: 0 40px 120px rgba(0,0,0,.8); position: relative; transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
-  .shot:hover { transform: translateY(-4px); box-shadow: 0 50px 140px rgba(0,0,0,.85), 0 0 60px rgba(240,138,36,.07); }
-  .shot-bar { display: flex; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
-  .shot-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); display: block; }
-  .shot img { display: block; width: 100%; height: auto; }
-
-  /* features */
-  .section { padding: 96px 0 8px; }
-  .section h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; text-align: center; }
-  .section p.lead { color: var(--dim); text-align: center; margin: 12px auto 0; max-width: 560px; line-height: 1.6; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 44px; }
-  .card { background: var(--surface-1); border: 1px solid var(--line); border-radius: 16px; padding: 26px; transition: transform .25s var(--ease), border-color .25s; }
-  .card:hover { transform: translateY(-3px); border-color: #3f444a; }
-  .card .ic { font-size: 26px; }
-  .card h3 { font-size: 17px; margin: 14px 0 8px; }
-  .card p { font-size: 14px; color: var(--dim); line-height: 1.65; }
-  .card code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; color: var(--text); }
-
-  /* buddy strip */
-  .buddy { display: flex; align-items: center; gap: 28px; background: var(--surface-1); border: 1px solid var(--line); border-radius: 20px; padding: 36px; margin-top: 16px; flex-wrap: wrap; }
-  .buddy .mini { width: 96px; height: 96px; flex-shrink: 0; animation: breathe 3.4s ease-in-out infinite; }
-  .buddy h3 { font-size: 22px; margin-bottom: 8px; }
-  .buddy p { color: var(--dim); font-size: 14.5px; line-height: 1.7; max-width: 640px; }
-
-  /* download */
-  .dl { text-align: center; padding: 96px 0; }
-  .dl .ver { display: inline-block; font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; margin-bottom: 20px; }
-  footer { border-top: 1px solid var(--line); padding: 28px 0 44px; display: flex; justify-content: space-between; color: var(--dim); font-size: 13px; flex-wrap: wrap; gap: 12px; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .mascot, .mascot .eyes, .buddy .mini, nav, .aura, .marquee-track, .chip-float,
-    .hero h1, .hero .sub, .hero .cta, .hero .keys { animation: none !important; }
-    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  }
-  .shot img { display: block; width: 100%; height: auto; }
-  .chip-float { position: absolute; display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(10,10,12,.82); backdrop-filter: blur(8px); border: 1px solid var(--line);
-    border-radius: 999px; padding: 8px 16px; font-size: 12.5px; font-weight: 600;
-    box-shadow: 0 12px 32px rgba(0,0,0,.6); animation: floaty 5s ease-in-out infinite; white-space: nowrap; }
-  .chip-float .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
-  .chip-float.blue .dot { background: var(--link); }
-  .chip-float.green .dot { background: #10b981; }
-  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
-
-  /* marquee */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  .demo { margin: 40px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    background: #0b0c10; box-shadow: 0 40px 120px rgba(0,0,0,.85); }
+  .demo-bar { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--line); background:#12141a; }
+  .demo-bar i { width:11px; height:11px; border-radius:50%; background:#2a2d34; display:block; }
+  .demo-bar span { font-size:12px; color: var(--dim); }
+  .demo-bar .pill { margin-left:auto; font-size:11px; border:1px solid var(--line); border-radius:999px; padding:3px 10px; color:var(--dim); display:inline-flex; align-items:center; gap:6px; }
+  .demo-bar .pill b { width:7px; height:7px; border-radius:50%; background:#10b981; display:block; }
+  .demo-stage { position:relative; background:#000; min-height:180px; }
+  .demo-stage img { display:block; width:100%; height:auto; animation: demoIn .38s var(--ease); }
+  @keyframes demoIn { from { opacity:.4; filter:blur(6px);} to { opacity:1; filter:none;} }
+  .swarm { position:absolute; top:12px; left:12px; display:flex; flex-wrap:wrap; gap:6px; pointer-events:none; }
+  .swarm span { background:rgba(18,20,26,.92); border:1px solid var(--line); border-radius:999px; padding:5px 10px; font-size:11px; display:inline-flex; align-items:center; gap:6px; }
+  .swarm span i { width:6px; height:6px; border-radius:50%; background:var(--orange); display:block; }
+  .allow-card { position:absolute; right:16px; bottom:16px; width:min(320px, calc(100% - 32px));
+    background:rgba(18,20,26,.96); border:1px solid var(--line); border-radius:14px; padding:16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+  .allow-card h4 { font-size:14px; margin-bottom:4px; }
+  .allow-card p { font-size:12px; color:var(--dim); margin-bottom:12px; }
+  .allow-card .row { display:flex; gap:8px; }
+  .allow-card .row button { flex:1; min-height:40px; }
+  .ok-chip { position:absolute; top:12px; left:12px; background:rgba(18,20,26,.92); border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px; font-size:12px; }
+  .palette { position:absolute; inset:0; background:rgba(0,0,0,.55); display:flex; justify-content:center; padding:12% 16px 16px; }
+  .palette-box { width:min(420px,100%); background:var(--surface-1); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.7); }
+  .palette-box .hd { padding:12px 16px; border-bottom:1px solid var(--line); font-size:13px; color:var(--dim); }
+  .palette-box button { width:100%; text-align:left; background:none; border:0; color:var(--text); padding:12px 16px; font:13.5px inherit; cursor:pointer; display:flex; justify-content:space-between; }
+  .palette-box button:hover { background:#1a1c22; }
+  .palette-box button em { color:var(--dim); font-style:normal; font-size:12px; }
+  .demo-chips { display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px; border-top:1px solid var(--line); }
+  .demo-chips button { background:#16181f; border:1px solid var(--line); color:#c9ccd1; border-radius:999px; padding:8px 14px; font:12.5px inherit; cursor:pointer; min-height:40px; }
+  .demo-chips button.on { background:var(--orange); color:#000; border-color:var(--orange); font-weight:700; }
+  .demo-note { text-align:center; color:var(--dim); font-size:13.5px; margin-top:12px; }
   .marquee { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    margin-top: 72px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    margin-top: 56px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
     mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-  .marquee-track { display: flex; gap: 0; width: max-content; padding: 16px 0;
-    animation: marquee 28s linear infinite; }
-  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-track { display: flex; width: max-content; padding: 16px 0; animation: marquee 28s linear infinite; }
   @keyframes marquee { to { transform: translateX(-50%); } }
   .marquee span { font-size: 13.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
     color: var(--dim); padding: 0 28px; white-space: nowrap; }
   .marquee span i { color: var(--orange); font-style: normal; margin-right: 28px; }
-
-  /* eyebrows + stats */
   .eyebrow { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .22em;
     text-transform: uppercase; color: var(--orange); margin-bottom: 14px; }
-  .stats { display: flex; justify-content: center; gap: clamp(24px, 6vw, 72px); margin-top: 56px; flex-wrap: wrap; }
+  .stats { display: flex; justify-content: center; gap: clamp(24px, 6vw, 72px); margin-top: 48px; flex-wrap: wrap; }
   .stat { text-align: center; }
   .stat b { display: block; font-size: clamp(30px, 4.5vw, 44px); font-weight: 700; letter-spacing: -.02em; }
   .stat span { font-size: 13px; color: var(--dim); }
-
-  /* footer columns */
+  .section { padding: 88px 0 8px; }
+  .section h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; text-align: center; }
+  .section p.lead { color: var(--dim); text-align: center; margin: 12px auto 0; max-width: 560px; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 44px; }
+  .card { background: var(--surface-1); border: 1px solid var(--line); border-radius: 16px; padding: 26px;
+    transition: transform .4s var(--ease), border-color .4s, box-shadow .4s; }
+  .card:hover { transform: translateY(-3px); border-color: #3f444a; box-shadow: 0 18px 50px rgba(0,0,0,.45); }
+  .card h3 { font-size: 17px; margin: 0 0 8px; }
+  .card p { font-size: 14px; color: var(--dim); line-height: 1.65; }
+  .card code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; color: var(--text); }
+  .buddy { display: flex; align-items: center; gap: 28px; background: var(--surface-1); border: 1px solid var(--line); border-radius: 20px; padding: 28px; margin-top: 16px; flex-wrap: wrap; }
+  .buddy img { width: 120px; height: 120px; object-fit: contain; flex-shrink: 0; }
+  .buddy h3 { font-size: 22px; margin-bottom: 8px; }
+  .buddy p { color: var(--dim); font-size: 14.5px; line-height: 1.7; max-width: 640px; }
+  .gallery { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:36px; }
+  .gallery img { width:100%; height:auto; border-radius:14px; border:1px solid var(--line); display:block; background:#0b0c10; }
+  .gallery figcaption { font-size:12px; color:var(--dim); margin-top:6px; }
+  .dl { text-align: center; padding: 88px 0; }
+  .dl .ver { display: inline-block; font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; margin-bottom: 20px; }
+  .wait-pill { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line);
+    background: rgba(240,138,36,.08); color: var(--text); border-radius:999px; padding:8px 14px;
+    font-size:13px; font-weight:600; }
+  .wait-pill b { color: var(--orange); font-variant-numeric: tabular-nums; }
+  footer { border-top: 1px solid var(--line); padding: 28px 0 44px; }
   .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; padding: 40px 0 8px; }
   .foot-grid h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-bottom: 12px; }
   .foot-grid a { display: block; font-size: 13.5px; color: var(--dim); margin: 7px 0; }
@@ -205,43 +148,30 @@
   .status-dot { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--dim); margin-top: 12px; }
   .status-dot i { width: 8px; height: 8px; border-radius: 50%; background: #10b981;
     box-shadow: 0 0 10px rgba(16,185,129,.8); animation: pulse 2s ease-in-out infinite; }
-
-  /* mobile menu */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
   #m-menu-btn { display: none; background: none; border: 1px solid var(--line); border-radius: 9px;
-    color: var(--text); font-size: 15px; padding: 5px 11px; cursor: pointer; }
+    color: var(--text); font-size: 15px; padding: 5px 11px; cursor: pointer; min-height: 40px; }
   #m-menu { display: none; }
-
-  body::before {
-    content: '';
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
-    opacity: .035; mix-blend-mode: overlay;
-  }
-  .wrap { position: relative; z-index: 1; }
-  .btn { transition: transform .28s var(--ease), box-shadow .28s var(--ease), background .28s; }
-  .btn:hover { box-shadow: 0 10px 30px rgba(255,255,255,.08); }
-  .card { transition: transform .4s var(--ease), border-color .4s, box-shadow .4s; }
-  .card:hover { box-shadow: 0 18px 50px rgba(0,0,0,.45); }
   .modal-card { animation: popIn .38s var(--ease) both; }
   @keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
   .drawer { animation: slideIn .42s var(--ease) both; }
   @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   #auth-modal, #profile-panel { animation: fadeScrim .28s var(--ease) both; }
   @keyframes fadeScrim { from { opacity: 0; } to { opacity: 1; } }
-  .wait-pill { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line);
-    background: rgba(240,138,36,.08); color: var(--text); border-radius:999px; padding:8px 14px;
-    font-size:13px; font-weight:600; }
-  .wait-pill b { color: var(--orange); font-variant-numeric: tabular-nums; }
-  @media (prefers-reduced-motion: reduce) {
-    .modal-card, .drawer, #auth-modal, #profile-panel { animation: none !important; }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+    opacity: .035; mix-blend-mode: overlay;
   }
-
+  @media (max-width: 800px) {
+    .gallery { grid-template-columns: 1fr; }
+    .allow-card { left:16px; right:16px; width:auto; }
+  }
   @media (max-width: 640px) {
     .btn, #m-menu-btn, #m-menu a { min-height: 44px; }
-    .chip-float { display: none; }
     .cta { flex-direction: column; align-items: stretch; }
     .cta .btn { justify-content: center; }
-
     .nav-links { display: none; }
     #m-menu-btn { display: block; }
     #m-menu.open { display: flex; }
@@ -249,24 +179,32 @@
       border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
     #m-menu a { color: var(--dim); font-size: 14px; padding: 9px 12px; border-radius: 9px; }
     #m-menu a:hover, #m-menu a:active { background: var(--surface-1); color: var(--text); }
+    .foot-grid { grid-template-columns: 1fr 1fr; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .mascot, .mascot .eyes, nav, .aura, .marquee-track, .hero h1, .hero .sub, .hero .cta, .hero .keys, .demo-stage img { animation: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .modal-card, .drawer, #auth-modal, #profile-panel { animation: none !important; }
+  }
+
 </style>
 </head>
 <body>
+
 <div class="wrap">
   <nav>
     <div class="brand">
       <img src="logohive.png" alt="Hive logo" width="30" height="30" style="border-radius:7px;display:block;" />
       Hive
+      <span class="ver">v0.0.3</span>
     </div>
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#buddy">Buddy</a>
       <a href="#hivebox">HiveBox</a>
       <a href="docs.html">Docs</a>
-      <a href="#soon">Coming soon</a>
       <a href="#waitlist">Waitlist</a>
-      <a href="#waitlist">Download</a>
     </div>
     <a class="btn" href="#waitlist">Join waitlist</a>
     <span id="s-login" style="display:inline-flex;align-items:center;"></span>
@@ -275,11 +213,9 @@
   <div id="m-menu">
     <a href="#features">Features</a>
     <a href="#buddy">Buddy</a>
-      <a href="#hivebox">HiveBox</a>
+    <a href="#hivebox">HiveBox</a>
     <a href="docs.html">Docs</a>
-    <a href="#soon">Coming soon</a>
     <a href="#waitlist">Waitlist</a>
-    <a href="#waitlist">Download</a>
   </div>
 
   <header class="hero">
@@ -299,55 +235,91 @@
       <g mask="url(#m)"><rect x="-115" y="-115" width="230" height="230" fill="#f08a24"/></g>
     </svg>
     <h1>The desktop AI<br/>that <span class="o">does things.</span></h1>
-    <p class="sub">Hive is a black-theme AI workspace for Windows: cited web research, code, a multi-agent swarm — plus a cursor buddy and a notch popover that can actually click, type, and open apps on your PC.</p>
+    <p class="sub">Cited web research, a concurrent swarm, a cursor buddy, and a notch that can click, type, and open apps on your PC.</p>
     <div class="cta">
       <a class="btn" href="#waitlist">Join the waitlist</a>
-      <a class="btn ghost" href="#features">See how it works</a>
+      <a class="btn ghost" href="#demo">Try the product demo</a>
     </div>
     <p class="keys">Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — the buddy pops, the app never opens.</p>
   </header>
 
-  <div class="shot reveal">
-    <div class="shot-bar"><i></i><i></i><i></i></div>
-    <img src="hive-screenshot.png" alt="Hive app — black chat workspace with the orange mascot" />
-    <span class="chip-float blue" style="top:22%;right:6%;"><span class="dot"></span>Cited sources</span>
-    <span class="chip-float" style="bottom:26%;left:5%;animation-delay:1.2s;"><span class="dot"></span>Buddy clicks your PC</span>
-    <span class="chip-float green" style="top:12%;left:8%;animation-delay:2.1s;"><span class="dot"></span>116 checks passing</span>
+  <div class="demo reveal" id="demo">
+    <div class="demo-bar">
+      <i></i><i></i><i></i>
+      <span>Hive — product demo</span>
+      <span class="pill"><b></b> Auto</span>
+      <button class="btn ghost" id="demo-k" type="button" style="padding:6px 12px;font-size:12px;">Ctrl+K</button>
+    </div>
+    <div class="demo-stage">
+      <img id="demo-img" src="shots/hive-empty.png" alt="Hive empty workspace" width="1600" height="900" />
+      <div class="swarm" id="demo-swarm" hidden>
+        <span><i></i> Scout +0ms</span>
+        <span><i></i> Hive +2ms</span>
+        <span><i></i> Pulse +4ms</span>
+      </div>
+      <div class="allow-card" id="demo-allow" hidden>
+        <h4>Operator wants to open Notepad</h4>
+        <p>Destructive shell is blocked. This one is safe.</p>
+        <div class="row">
+          <button class="btn" type="button" id="demo-allow-yes">Allow</button>
+          <button class="btn ghost" type="button" id="demo-allow-no">Deny</button>
+        </div>
+      </div>
+      <div class="ok-chip" id="demo-ok" hidden>● Allowed · notepad launched</div>
+      <div class="palette" id="demo-pal" hidden>
+        <div class="palette-box">
+          <div class="hd">Command palette</div>
+          <button type="button" data-go="start">New chat <em>fresh conversation</em></button>
+          <button type="button" data-go="notch">Buddy notch <em>Ctrl+Shift+J</em></button>
+          <button type="button" data-go="research">Workers <em>Scout · Hive · Pulse</em></button>
+          <button type="button" data-go="settings">Settings <em>Buddy, ink, modes</em></button>
+        </div>
+      </div>
+    </div>
+    <div class="demo-chips" id="demo-chips">
+      <button type="button" data-scene="start" class="on">Start here</button>
+      <button type="button" data-scene="research">Research the web</button>
+      <button type="button" data-scene="pc">Control my PC</button>
+      <button type="button" data-scene="notch">Notch</button>
+      <button type="button" data-scene="settings">Settings</button>
+    </div>
   </div>
+  <p class="demo-note" id="demo-note">True-black chat. Pick a chip — same ones that live in the app.</p>
 
   <div class="marquee reveal" aria-hidden="true">
     <div class="marquee-track" id="marquee-track">
-      <span><i>●</i>Cited research</span><span><i>●</i>Code canvas</span><span><i>●</i>Mozaik swarm</span><span><i>●</i>Cursor buddy</span><span><i>●</i>Notch island</span><span><i>●</i>Voice in &amp; out</span><span><i>●</i>True-black UI</span><span><i>●</i>PC control</span>
+      <span><i>●</i>Cited research</span><span><i>●</i>Mozaik swarm</span><span><i>●</i>Command palette</span><span><i>●</i>Allow / Deny</span><span><i>●</i>Cursor buddy</span><span><i>●</i>Notch island</span><span><i>●</i>HiveBox</span><span><i>●</i>PC control</span>
     </div>
   </div>
 
   <div class="stats reveal">
     <div class="stat"><b><span class="count" data-to="116">0</span></b><span>automated checks passing</span></div>
-    <div class="stat"><b><span class="count" data-to="15">0</span></b><span>avatar engine states</span></div>
+    <div class="stat"><b><span class="count" data-to="5">0</span></b><span>agents on one message</span></div>
     <div class="stat"><b><span class="count" data-to="4">0</span></b><span>ways Buddy acts on your PC</span></div>
   </div>
 
   <section class="section reveal" id="features">
     <div class="eyebrow">Why Hive</div>
     <h2>One window. Every job.</h2>
-    <p class="lead">Chat is the interface. Everything else — research, code, automation — happens inside the conversation.</p>
+    <p class="lead">Chat is the interface. Research, code, swarm, and the machine itself live inside the conversation.</p>
     <div class="grid">
-      <div class="card"><div class="ic">🔍</div><h3>Cited web research</h3><p>Live search with clickable source cards. Every claim carries its receipts — blue links, Grok-style.</p></div>
-      <div class="card"><div class="ic">⚡</div><h3>Code + canvas</h3><p>Generated code lands in a side canvas with syntax highlight. Attach files, iterate, ship.</p></div>
-      <div class="card"><div class="ic">👑</div><h3>Mozaik swarm</h3><p>Scout, Hive, and Pulse start together. Critic reviews Hive. Sentry stops fake citations and destructive commands.</p></div>
-      <div class="card"><div class="ic">🖱️</div><h3>Real PC control</h3><p><code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code> — or just ask, and the buddy emits the actions.</p></div>
-      <div class="card"><div class="ic">🎙️</div><h3>Voice in, voice out</h3><p>Push-to-talk dictation, spoken answers, and a voice-call mode for hands-free sessions.</p></div>
-      <div class="card"><div class="ic">☁</div><h3>HiveBox cloud computer</h3><p>A live panel for Scout, Hive, and Pulse jobs — tiny disk, logs, and safe shell commands.</p></div>
-      <div class="card"><div class="ic">⚡</div><h3>Fast · Auto · Heavy · Max</h3><p>You never pick a model name. The title-bar pill is the mode; Hive chooses the model.</p></div>
-      <div class="card"><div class="ic">⬛</div><h3>True-black UI</h3><p>OLED black, monochrome type, hairline borders. Quiet by design — dark-only, like it should be.</p></div>
+      <div class="card"><h3>Cited web research</h3><p>Live search with Verified Sources cards — domain, title, snippet, and blue links.</p></div>
+      <div class="card"><h3>Mozaik swarm</h3><p>Scout, Hive, and Pulse start together. Critic reviews Hive. Sentry stops fake citations and destructive commands.</p></div>
+      <div class="card"><h3>Command palette</h3><p><kbd>Ctrl</kbd>+<kbd>K</kbd> jumps to a new chat, Buddy, canvas, workers, settings, or the notch.</p></div>
+      <div class="card"><h3>Allow / Deny</h3><p>Operator waits for you before touching the PC. Scout and Hive keep running while you decide.</p></div>
+      <div class="card"><h3>Real PC control</h3><p><code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code> — or just ask. Destructive shell is blocked.</p></div>
+      <div class="card"><h3>Voice in, voice out</h3><p>Push-to-talk dictation in the notch and spoken answers when a job finishes.</p></div>
+      <div class="card"><h3>HiveBox</h3><p>A live panel for Scout, Hive, and Pulse jobs — tiny disk, logs, and a handful of safe shell commands.</p></div>
+      <div class="card"><h3>Fast · Auto · Heavy · Max</h3><p>You never pick a model name. The title-bar pill is the mode; Hive chooses.</p></div>
     </div>
-    <div class="buddy" id="buddy">
-      <svg class="mini" viewBox="-115 -115 230 230" role="img" aria-label="Hive buddy">
-        <g><rect x="-115" y="-115" width="230" height="230" fill="#f08a24" mask="url(#m)"/></g>
-      </svg>
+  </section>
+
+  <section class="section reveal" id="buddy" style="padding-top:32px;">
+    <div class="buddy">
+      <img src="shots/hive-buddy-float.png" alt="Hive Buddy — orange mascot" width="120" height="120" />
       <div>
         <h3>Meet the Buddy. It lives at your cursor.</h3>
-        <p>Enable it in Settings and an orange companion trails your mouse across every screen — breathing, blinking, watching. It pops an island when it listens, thinks, clicks, or types, and hides the moment you hide Hive. Summon the notch anywhere with <kbd style="font-family:ui-monospace,monospace;font-size:12px;background:#000;border:1px solid var(--line);border-radius:6px;padding:2px 8px;">Ctrl+Shift+J</kbd>.</p>
+        <p>Enable Hive Buddy at Cursor in Settings. An orange companion trails your mouse — breathing, blinking, watching. It pops an island when it listens, thinks, clicks, or types, and hides the moment you hide Hive. Tray → Ask Hive opens the notch without the full window.</p>
       </div>
     </div>
   </section>
@@ -357,55 +329,64 @@
     <h2>Docs.</h2>
     <p class="lead">Everything you need in five minutes — <a href="docs.html">read the full manual →</a></p>
     <div class="grid">
-      <a class="card" href="docs.html#quickstart"><div class="ic">🚀</div><h3>Get Hive</h3><p>Invite-only Windows preview. Join the waitlist — we email you when a spot opens.</p></a>
-      <div class="card"><div class="ic">🟠</div><h3>Buddy</h3><p>Settings → General → Hive Buddy at Cursor. The orange companion trails your mouse on every screen and hides whenever Hive hides. Pick its model and ink in the same place.</p></div>
-      <div class="card"><div class="ic">⬛</div><h3>Notch</h3><p>Press <code>Ctrl+Shift+J</code> anywhere: a pill pops at the top of your screen and expands into the Buddy panel. Ask, dictate with 🎙, or run <code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code>. <code>Esc</code> dismisses.</p></div>
-      <div class="card"><div class="ic">🖱️</div><h3>PC control</h3><p>The buddy opens apps and URLs, runs PowerShell, clicks window coordinates, and types into the focused window. Destructive shell commands are blocked by policy; every action lands in the overlay audit log.</p></div>
-      <div class="card"><div class="ic">👑</div><h3>Swarm</h3><p>Rail → Workers opens the roster in the main view. Chat live with any bot, create custom workers, remove the ones you outgrew. Chats persist per conversation in the sidebar.</p></div>
-      <div class="card"><div class="ic">❓</div><h3>FAQ</h3><p><strong>Windows only?</strong> Yes, today. <strong>Free?</strong> Yes — bring your own OpenRouter key. <strong>My data?</strong> Local-first: chats and settings live on your machine. <strong>Voice calling?</strong> Coming soon — dictation + spoken answers work now.</p></div>
+      <a class="card" href="docs.html#get-hive"><h3>Access</h3><p>Invite-only Windows preview. Join the waitlist — we email you when a spot opens.</p></a>
+      <a class="card" href="docs.html#buddy"><h3>Buddy</h3><p>Trails the mouse on every screen and hides whenever Hive hides. Pick its ink: Orange, Ink, Ghost, Cobalt, Amber.</p></a>
+      <a class="card" href="docs.html#notch"><h3>Notch</h3><p><code>Ctrl+Shift+J</code> pops a pill at the top of the screen. Ask, dictate, or run slash commands. <code>Esc</code> dismisses.</p></a>
+      <a class="card" href="docs.html#pc"><h3>PC control</h3><p>The buddy opens apps, runs shell, clicks, and types — after you Allow. Destructive commands are blocked.</p></a>
+      <a class="card" href="docs.html#swarm"><h3>Swarm</h3><p>Scout, Hive, Pulse, Critic, and Sentry on one message. A swarm strip shows when two or more overlap.</p></a>
+      <a class="card" href="docs.html#palette"><h3>Palette</h3><p><code>Ctrl+K</code> — new chat, Buddy, canvas, workers, settings, notch.</p></a>
     </div>
   </section>
 
   <section class="section reveal" id="hivebox" style="padding-top:32px;">
     <div class="eyebrow">HiveBox</div>
     <h2>A cloud computer in the rail.</h2>
-    <p class="lead">Toggle the panel in the title bar. Scout, Hive, and Pulse jobs share a tiny disk and a live log. Commands stay small on purpose: ls, cat, echo, pwd, uname.</p>
+    <p class="lead">Scout searches, Hive drafts, Pulse flags risk — three loops at once. Critic ships or sends Hive back.</p>
     <div class="grid">
-      <div class="card"><div class="ic">💾</div><h3>Tiny disk</h3><p>A Durable Object keeps files and logs between jobs.</p></div>
-      <div class="card"><div class="ic">✦</div><h3>Scout · Hive · Pulse</h3><p>Three concurrent workers you can watch as they run.</p></div>
-      <div class="card"><div class="ic">🛡</div><h3>Audit overlay</h3><p>Every buddy click, type, and shell lands in the overlay log.</p></div>
+      <div class="card"><h3>Tiny disk</h3><p>Keeps files and logs between jobs.</p></div>
+      <div class="card"><h3>Scout · Hive · Pulse</h3><p>Three concurrent workers you can watch as they run.</p></div>
+      <div class="card"><h3>Audit overlay</h3><p>Every buddy click, type, and shell lands in the overlay log.</p></div>
     </div>
   </section>
 
-  <section class="dl reveal" id="download">
-    <span class="ver">v0.0.2 · Windows · invite only</span>
+  <section class="section reveal" id="gallery" style="padding-top:32px;">
+    <div class="eyebrow">Inside the app</div>
+    <h2>The real product.</h2>
+    <p class="lead">Screenshots from the current Hive build.</p>
+    <div class="gallery">
+      <figure>
+        <img src="shots/hive-empty.png" alt="Hive empty chat with starter chips" />
+        <figcaption>Empty state · Research · Write code · Control my PC</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/hive-search.png" alt="Hive search with cited sources and a live swarm strip" />
+        <figcaption>Cited search + swarm strip</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/hive-settings.png" alt="Hive settings — Buddy at Cursor" />
+        <figcaption>Settings · Buddy at Cursor</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/hive-notch.png" alt="Hive Buddy notch pill" />
+        <figcaption>Buddy notch · Ctrl+Shift+J</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dl reveal" id="invite">
+    <span class="ver">v0.0.3 · Windows · invite only</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Take Hive home.</h2>
     <p class="lead" style="color:var(--dim);margin:14px auto 28px;max-width:520px;line-height:1.65;">Hive is a private Windows preview. Join the waitlist — we’ll write when a spot opens.</p>
-    <div class="cta">
-      <a class="btn" href="#waitlist">Request access</a>
-    </div>
-    <p style="margin-top:16px;font-size:13px;color:var(--dim);">Hive <strong style="color:var(--text);">v0.0.2</strong> · Windows 10/11 · free</p>
+    <div class="cta"><a class="btn" href="#waitlist">Request access</a></div>
   </section>
 
   <section class="section reveal" id="soon" style="padding-top:32px;">
     <div class="eyebrow">Roadmap</div>
     <h2>Coming soon.</h2>
-    <p class="lead">The next things landing in Hive.</p>
     <div class="grid">
-      <div class="card"><div class="ic">📞</div><h3>Voice calling <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Full duplex voice calls with Hive and your bots. Today: dictation and spoken answers.</p></div>
-      <div class="card"><div class="ic">🟠</div><h3>Buddy everywhere <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>The cursor buddy is coming to the web: the same orange companion, the same notch, right in your browser.</p></div>
-      <div class="card"><div class="ic">📱</div><h3>Mobile <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Hive on the go — chat, swarm, and buddy status from your pocket.</p></div>
-    </div>
-  </section>
-
-  
-  <section class="section reveal" id="gallery">
-    <div class="eyebrow">Inside the app</div>
-    <h2>The real product.</h2>
-    <p class="lead">Chat with cited sources, a live swarm strip, the buddy, and Settings — from the current build.</p>
-    <div class="grid">
-      <img src="shots/hive-search.png" alt="Hive search with cited sources" style="width:100%;border-radius:16px;border:1px solid var(--line);" />
-      <img src="shots/hive-settings.png" alt="Hive General preferences and Buddy colors" style="width:100%;border-radius:16px;border:1px solid var(--line);" />
+      <div class="card"><h3>Voice calling</h3><p>Full duplex voice calls with Hive and your bots. Today: push-to-talk dictation and spoken answers.</p></div>
+      <div class="card"><h3>Buddy everywhere</h3><p>The cursor buddy on the web: the same orange companion, the same notch, in the browser.</p></div>
+      <div class="card"><h3>Mobile</h3><p>Hive on the go — chat, swarm, and buddy status from your pocket.</p></div>
     </div>
   </section>
 
@@ -413,7 +394,7 @@
     <span class="ver">Waitlist</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Get Hive first.</h2>
     <p class="lead" style="color:var(--dim);margin:14px auto 18px;max-width:520px;line-height:1.65;">Create an account, then choose whether to join the waitlist. We’ll email you if a spot opens.</p>
-    <p class="wait-pill" id="waitlist-count-pill" style="margin:0 auto 22px;"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--orange);display:inline-block;"></span><span id="waitlist-count-label">Loading the queue…</span></p>
+    <p class="wait-pill" id="waitlist-count-pill" style="margin:0 auto 22px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--orange);display:inline-block;"></span><span id="waitlist-count-label">Loading the queue…</span></p>
     <form id="waitlist-form" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <input id="waitlist-email" type="email" required placeholder="you@example.com"
         style="background:var(--surface-1);border:1px solid var(--line);border-radius:999px;padding:11px 20px;color:var(--text);font-size:14px;outline:none;width:min(320px,80vw);font-family:inherit;" />
@@ -424,13 +405,13 @@
 
   <section class="section reveal" id="team" style="padding-top:32px;">
     <h2>Built by Apis.</h2>
-    <p class="lead">Hive is designed, engineered, and shipped by <strong style="color:var(--text);">Apis</strong> — developer &amp; team behind the swarm. One crew, end to end: desktop app, buddy engine, browser bridge, and this page.</p>
+    <p class="lead">Hive is designed, engineered, and shipped by <strong style="color:var(--text);">Apis</strong> — one crew, end to end: desktop app, buddy engine, HiveBox, and this page.</p>
   </section>
 
   <footer>
     <div class="foot-grid">
       <div>
-        <div style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--text);margin-bottom:10px;"><img src="logohive.png" alt="Hive logo" width="22" height="22" style="border-radius:6px;" /> Hive</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--text);margin-bottom:10px;"><img src="logohive.png" alt="" width="22" height="22" style="border-radius:6px;" /> Hive</div>
         <div style="font-size:13px;max-width:260px;">The desktop AI that does things. By <strong style="color:var(--text);">Apis</strong>.</div>
         <div class="status-dot"><i></i>All systems operational</div>
       </div>
@@ -438,7 +419,7 @@
         <h4>Product</h4>
         <a href="#features">Features</a>
         <a href="#buddy">Buddy</a>
-        <a href="#waitlist">Download</a>
+        <a href="#waitlist">Waitlist</a>
       </div>
       <div>
         <h4>Resources</h4>
@@ -454,10 +435,59 @@
     </div>
     <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:22px;color:var(--dim);font-size:13px;flex-wrap:wrap;gap:12px;">
       <span>Black theme · Local-first · Made for doers.</span>
-      <span>v0.0.2</span>
+      <span>v0.0.3</span>
     </div>
   </footer>
 </div>
+<script>
+(function () {
+  var scenes = {
+    start: { src: 'shots/hive-empty.png', alt: 'Hive empty workspace', note: 'True-black chat. Pick a chip — same ones that live in the app.', swarm: false, allow: false },
+    research: { src: 'shots/hive-search.png', alt: 'Hive cited search with swarm strip', note: 'Scout, Hive, and Pulse start together. Sources land as cards.', swarm: true, allow: false },
+    pc: { src: 'shots/hive-chat.png', alt: 'Hive opening Notepad', note: 'Operator waits. You Allow or Deny before anything touches the machine.', swarm: false, allow: true },
+    notch: { src: 'shots/hive-notch.png', alt: 'Hive Buddy notch', note: 'Ctrl+Shift+J anywhere. The window never has to open.', swarm: false, allow: false },
+    settings: { src: 'shots/hive-settings.png', alt: 'Hive settings', note: 'Buddy at Cursor, ink, Fast / Auto / Heavy / Max.', swarm: false, allow: false }
+  };
+  var img = document.getElementById('demo-img');
+  var note = document.getElementById('demo-note');
+  var swarm = document.getElementById('demo-swarm');
+  var allow = document.getElementById('demo-allow');
+  var ok = document.getElementById('demo-ok');
+  var pal = document.getElementById('demo-pal');
+  var chips = document.querySelectorAll('#demo-chips button');
+  var allowed = false;
+  function show(id) {
+    var s = scenes[id]; if (!s || !img) return;
+    img.src = s.src; img.alt = s.alt;
+    if (note) note.textContent = s.note;
+    if (swarm) swarm.hidden = !s.swarm;
+    if (allow) allow.hidden = !(s.allow && !allowed);
+    if (ok) ok.hidden = !(s.allow && allowed);
+    if (pal) pal.hidden = true;
+    chips.forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-scene') === id); });
+    window._demoScene = id;
+  }
+  chips.forEach(function (b) {
+    b.addEventListener('click', function () {
+      allowed = false;
+      show(b.getAttribute('data-scene'));
+    });
+  });
+  var yes = document.getElementById('demo-allow-yes');
+  var no = document.getElementById('demo-allow-no');
+  if (yes) yes.addEventListener('click', function () { allowed = true; show('pc'); });
+  if (no) no.addEventListener('click', function () { allowed = false; show('start'); });
+  var k = document.getElementById('demo-k');
+  if (k) k.addEventListener('click', function () { if (pal) pal.hidden = !pal.hidden; });
+  if (pal) pal.addEventListener('click', function (e) {
+    var go = e.target && e.target.getAttribute && e.target.getAttribute('data-go');
+    if (go) { allowed = false; show(go); }
+    else if (e.target === pal) pal.hidden = true;
+  });
+  show('start');
+})();
+</script>
+
 <script>
   (function () {
     var form = document.getElementById('waitlist-form');
@@ -991,3 +1021,4 @@
 
 </body>
 </html>
+

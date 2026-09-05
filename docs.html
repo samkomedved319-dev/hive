@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Hive Docs — overview</title>
-<meta name="description" content="Hive documentation: quickstart, chat, buddy, notch, PC control, swarm, settings, accounts, FAQ." />
+<meta name="description" content="Hive documentation: access, chat, buddy, notch, PC control, swarm, command palette, settings, FAQ." />
 <link rel="icon" type="image/png" href="logohive.png" />
 <style>
   :root {
@@ -17,7 +17,6 @@
     --link: #1d9bf0;
     --orange: #f08a24;
     --green: #10b981;
-    --red: #f04438;
     --ease: cubic-bezier(.16, .8, .24, 1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +30,6 @@
   a:hover { text-decoration: underline; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em;
     background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; }
-  /* top bar */
   .top { position: sticky; top: 0; z-index: 50; background: rgba(0,0,0,.85); backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line); }
   .top-inner { max-width: 1240px; margin: 0 auto; padding: 0 24px; height: 60px;
@@ -43,8 +41,7 @@
   .top-links a { color: var(--dim); }
   .top-links a:hover { color: var(--text); text-decoration: none; }
   #menu-btn { display: none; background: none; border: 1px solid var(--line); border-radius: 8px;
-    color: var(--text); font-size: 16px; padding: 4px 10px; cursor: pointer; }
-  /* layout */
+    color: var(--text); font-size: 16px; padding: 4px 10px; cursor: pointer; min-height: 40px; }
   .layout { max-width: 1240px; margin: 0 auto; padding: 0 24px; display: grid;
     grid-template-columns: 250px minmax(0, 1fr); gap: 48px; }
   aside { position: sticky; top: 60px; align-self: start; height: calc(100vh - 60px);
@@ -62,21 +59,9 @@
   main p { color: #c9ccd1; margin: 10px 0; }
   main ul, main ol { margin: 10px 0 10px 22px; color: #c9ccd1; }
   main li { margin: 6px 0; }
-  main li::marker { color: var(--dim); }
-  pre { background: var(--surface-1); border: 1px solid var(--line); border-radius: 12px;
-    padding: 16px 18px; margin: 14px 0; overflow-x: auto; position: relative; }
-  pre code { background: none; border: none; padding: 0; font-size: 13.5px; line-height: 1.65;
-    color: var(--text); display: block; white-space: pre; }
-  .copy { position: absolute; top: 10px; right: 10px; background: var(--surface-2);
-    border: 1px solid var(--line); border-radius: 7px; color: var(--dim); font-size: 12px;
-    padding: 3px 10px; cursor: pointer; font-family: inherit; }
-  .copy:hover { color: var(--text); border-color: var(--dim); }
   .callout { border: 1px solid var(--line); border-left: 3px solid var(--orange); border-radius: 10px;
     background: var(--surface-1); padding: 14px 18px; margin: 16px 0; font-size: 14px; color: #c9ccd1; }
-  .callout.blue { border-left-color: var(--link); }
   .callout.green { border-left-color: var(--green); }
-  .callout.red { border-left-color: var(--red); }
-  .callout strong { color: var(--text); }
   table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
   th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; }
@@ -101,7 +86,7 @@
   <div class="top-inner">
     <button id="menu-btn" aria-label="Menu">☰</button>
     <a class="brand" href="index.html"><img src="logohive.png" alt="Hive logo" width="26" height="26" style="border-radius:6px;" /> Hive Docs</a>
-    <span class="ver">v0.0.1</span>
+    <span class="ver">v0.0.3</span>
     <div class="top-links">
       <a href="index.html">Home</a>
       <a href="index.html#waitlist">Waitlist</a>
@@ -113,18 +98,18 @@
   <aside id="sidebar">
     <div class="group">Start</div>
     <a href="#overview">Overview</a>
+    <a href="#get-hive">Access</a>
     <div class="group">Use</div>
-    <a href="#chat">Chat &amp; search</a>
+    <a href="#chat">Chat & search</a>
     <a href="#buddy">Buddy</a>
-    <a href="#notch">Notch &amp; hotkeys</a>
+    <a href="#notch">Notch & hotkeys</a>
     <a href="#pc">PC control</a>
-    <a href="#swarm">Swarm &amp; bots</a>
+    <a href="#swarm">Swarm</a>
+    <a href="#palette">Command palette</a>
     <a href="#modes">Modes</a>
-    <a href="#cloud">Cloud computer</a>
+    <a href="#cloud">HiveBox</a>
     <div class="group">Configure</div>
     <a href="#settings">Settings</a>
-    <a href="#accounts">Website accounts</a>
-    <a href="#feedback">Feedback</a>
     <a href="#shortcuts">Shortcuts</a>
     <div class="group">Help</div>
     <a href="#faq">FAQ</a>
@@ -135,81 +120,44 @@
     <p style="color:var(--dim);font-size:17px;">The desktop AI that does things — chat, research, code, and a buddy that clicks your PC for you.</p>
 
     <h2 id="overview">Overview</h2>
-    <p>Hive is a Windows desktop workspace (Electron + React) with a true-black, Grok-grade interface. One window holds everything: a chat column with cited answers, a code canvas, a roster of agent bots, and a system-wide buddy — an orange companion that trails your cursor and pops a notch island anywhere with <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd>.</p>
-    <div class="callout green"><strong>Local-first.</strong> Chats, settings, and transcripts live on your machine. The only network calls are your model provider and, on the website, Supabase auth.</div>
+    <p>Hive is a Windows desktop workspace. One window holds a chat column with cited answers, a code canvas, a roster of agent bots, HiveBox, and a system-wide buddy — an orange companion that trails your cursor and pops a notch island with <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd>.</p>
+    <div class="callout green"><strong>Local-first.</strong> Chats, settings, and transcripts live on your machine.</div>
 
-    <h2 id="quickstart">Get Hive</h2>
-    <p>Join the waitlist. There is no public installer on this site. After install: Settings → Models for your OpenRouter key, then Settings → General to enable <strong>Hive Buddy at Cursor</strong>.</p>
+    <h2 id="get-hive">Access</h2>
+    <p>Hive is an invite-only Windows preview. Join the waitlist on this site. When a spot opens, we email you. There is no public installer on this page.</p>
 
-    <h2 id="chat">Chat &amp; search</h2>
-    <p>Your messages render as right-aligned bubbles; assistant replies are plain full-width text. Ask anything — or trigger the search pipeline with words like <em>search, latest, news, who is, lookup</em>.</p>
-    <p>Web answers arrive with <strong>Verified Sources</strong> cards: domain chip, title, snippet, blue links. Suggestion chips on the empty state (<em>Research the web · Write code · Control my PC</em>) send one-tap starter prompts.</p>
-    <div class="callout blue"><strong>Tip.</strong> The mode pill in the title bar is Fast, Auto, Heavy, or Max — Hive picks the model for you.</div>
+    <h2 id="chat">Chat & search</h2>
+    <p>Your messages render as right-aligned bubbles; assistant replies are full-width. Words like search, latest, news, who is, lookup trip the web pipeline. Answers arrive with <strong>Verified Sources</strong> cards: domain, title, snippet, links. Empty-state chips: Research the web · Write code · Control my PC.</p>
+    <div class="callout">The mode pill in the title bar is Fast, Auto, Heavy, or Max — Hive picks the model for you.</div>
 
     <h2 id="buddy">Buddy</h2>
-    <p>The orange house avatar (a live morphing engine, not a GIF) can live in three places:</p>
     <ul>
-      <li><strong>Messages</strong> — every assistant reply carries it; the empty-state hero follows your cursor.</li>
-      <li><strong>Cursor</strong> — enable in Settings and it trails your mouse across all screens with spring physics, eyes tracking the pointer, and a click-pop reaction.</li>
-      <li><strong>System window</strong> — the same buddy in a click-through always-on-top window. It hides whenever Hive hides.</li>
+      <li><strong>Messages</strong> — every assistant reply carries the orange house avatar.</li>
+      <li><strong>Cursor</strong> — trails the mouse across screens with spring physics and a click-pop.</li>
+      <li><strong>System window</strong> — click-through, always on top, hides when Hive hides.</li>
     </ul>
-    <p>Recolor it anytime: Settings → Buddy Color (Orange, Ink, Ghost, Cobalt, Amber) applies to every avatar at once.</p>
+    <p>Recolor it in Settings → Buddy Color: Orange, Ink, Ghost, Cobalt, Amber.</p>
 
-    <h2 id="notch">Notch &amp; hotkeys</h2>
-    <p>Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> <strong>anywhere</strong> — even with Hive minimized. A black pill pops at the top of your screen and springs open into the Buddy panel. The app itself never opens.</p>
-    <ul>
-      <li><strong>🎙 mic</strong> — push-to-talk dictation straight into the box.</li>
-      <li><strong>Type or speak</strong> — plain questions go to your buddy model.</li>
-      <li><strong>Slash commands</strong> — see <a href="#pc">PC control</a>.</li>
-      <li><strong>Dismiss</strong> — <kbd>Esc</kbd>, click-away, or the ✕.</li>
-    </ul>
-    <div class="callout"><strong>Why J?</strong> A bare <kbd>Ctrl</kbd> + <kbd>Shift</kbd> is modifiers-only and can't register as a global hotkey — <kbd>J</kbd> completes it.</div>
+    <h2 id="notch">Notch & hotkeys</h2>
+    <p>Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — even with Hive minimized. A black pill pops at the top of your screen and opens into the Buddy panel. Dictate with the mic, type a question, or run slash commands. Esc dismisses. Tray → <strong>Ask Hive</strong> opens the same notch.</p>
 
     <h2 id="pc">PC control</h2>
-    <p>The buddy acts on your machine through audited blocks. Destructive shell commands are refused by policy, and every action lands in the overlay log.</p>
+    <p>Operator waits for Allow / Deny before touching the PC. Destructive shell is refused. Every action lands in the overlay audit log.</p>
     <table>
       <tr><th>Command</th><th>Does</th></tr>
-      <tr><td><code>/open &lt;app|url&gt;</code></td><td>Launches apps (<code>/open notepad</code>) or URLs</td></tr>
-      <tr><td><code>/run &lt;powershell&gt;</code></td><td>Runs a shell command, returns output</td></tr>
-      <tr><td><code>/click &lt;x&gt; &lt;y&gt;</code></td><td>Moves the real cursor and left-clicks (DPI-aware)</td></tr>
-      <tr><td><code>/type &lt;text&gt;</code></td><td>Types into the focused window</td></tr>
-    </table>
-    <p>Plain questions work too: the model emits <code>system_exec</code>, <code>buddy_click</code>, and <code>buddy_type</code> blocks that execute in order, then speaks a short summary out loud.</p>
-
-    <h2 id="swarm">Swarm &amp; bots</h2>
-    <p>Rail → Workers opens the roster <strong>in the main column</strong>, where chat lives. Each card shows avatar, role, and a Live badge for the active bot.</p>
-    <ul>
-      <li><strong>Chat live</strong> — starts a fresh conversation with that bot instantly.</li>
-      <li><strong>New worker bot</strong> — name, role, avatar, system prompt. CEO Hive can never be deleted.</li>
-      <li><strong>Conversations</strong> — the left panel stores one transcript per chat, restored on boot, switched with a slide animation.</li>
-    </ul>
-
-    <h2 id="settings">Settings</h2>
-    <table>
-      <tr><th>Tab</th><th>Controls</th></tr>
-      <tr><td>General</td><td>Enter-to-send, auto canvas, <strong>Buddy toggle + model + color</strong>, workspace export, history clear</td></tr>
-      <tr><td>Models</td><td>Default model, thinking mode, system instructions, default model</td></tr>
-      <tr><td>Appearance</td><td>Accent color, reduced motion</td></tr>
-      <tr><td>Integrations</td><td>Chrome extension bridge</td></tr>
-      <tr><td>Shortcuts</td><td>Full hotkey reference</td></tr>
+      <tr><td><code>/open <app|url></code></td><td>Launches apps or URLs</td></tr>
+      <tr><td><code>/run <powershell></code></td><td>Runs a shell command, returns output</td></tr>
+      <tr><td><code>/click <x> <y></code></td><td>Moves the cursor and left-clicks</td></tr>
+      <tr><td><code>/type <text></code></td><td>Types into the focused window</td></tr>
     </table>
 
-    <h2 id="accounts">Website accounts</h2>
-    <p>The site runs email sign-in on Supabase. New accounts start <strong>pending</strong>; an admin flips them to <strong>approved</strong> (or <strong>denied</strong>) in the Supabase table editor. Each member gets a sequential customer number (#1, #2, …) shown in their profile panel, where they can also rename themselves, toggle email updates, and sign out.</p>
-    <div class="callout red"><strong>Self-host note.</strong> The anon key in the page is publishable by design; row-level security restricts every member to their own row. Never expose the <code>service_role</code> key.</div>
+    <h2 id="swarm">Swarm & bots</h2>
+    <p>Scout, Hive, and Pulse start <strong>together</strong> on one message. Critic only runs after Hive answers. Sentry watches tool calls and rewrites fake citations or destructive commands. A swarm strip appears when two or more agents overlap.</p>
 
-    <h2 id="shortcuts">Shortcuts</h2>
-    <table>
-      <tr><th>Keys</th><th>Action</th></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd></td><td>Buddy notch anywhere</td></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd></td><td>Show / hide Hive window</td></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd></td><td>Sidebar open / close</td></tr>
-      <tr><td><kbd>Enter</kbd> / <kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>Send / newline</td></tr>
-      <tr><td><kbd>Esc</kbd></td><td>Close dialog, modal, or notch</td></tr>
-    </table>
+    <h2 id="palette">Command palette</h2>
+    <p><kbd>Ctrl</kbd> + <kbd>K</kbd> opens the palette: new chat, group, Buddy, canvas, settings, workers, notch.</p>
 
     <h2 id="modes">Modes</h2>
-    <p>You never pick a raw model name. Four modes:</p>
     <table>
       <tr><th>Mode</th><th>Use it when</th></tr>
       <tr><td>Fast</td><td>Quick answers, lowest wait.</td></tr>
@@ -218,24 +166,40 @@
       <tr><td>Max</td><td>Deepest pass. Slowest, most thorough.</td></tr>
     </table>
 
-    <h2 id="cloud">Cloud computer</h2>
-    <p>The right-side panel is a live view of <strong>HiveBox</strong> — a Cloudflare Durable Object that keeps a tiny disk, logs, and concurrent Scout / Hive / Pulse jobs. Toggle the canvas / panel button in the title bar. Commands on Cloudflare are limited to <code>ls</code>, <code>cat</code>, <code>echo</code>, <code>pwd</code>, <code>uname</code>.</p>
-    <p></p>
+    <h2 id="cloud">HiveBox</h2>
+    <p>The right-side panel is a live view of HiveBox: a tiny disk, logs, and concurrent Scout / Hive / Pulse jobs. Toggle it in the title bar. Commands: ls, cat, echo, pwd, uname.</p>
 
-    <h2 id="feedback">Feedback</h2>
-    <p>The <strong>Feedback</strong> button in the title bar sends a review to the website admin panel. Admins open <a href="admin.html">admin.html</a> to approve waitlist members and feedback.</p>
+    <h2 id="settings">Settings</h2>
+    <table>
+      <tr><th>Tab</th><th>Controls</th></tr>
+      <tr><td>General</td><td>Enter-to-send, auto canvas, Buddy toggle + model + color, workspace export, history clear</td></tr>
+      <tr><td>Models</td><td>Default model, thinking mode, system instructions</td></tr>
+      <tr><td>Appearance</td><td>Accent color, reduced motion</td></tr>
+      <tr><td>Integrations</td><td>Chrome extension bridge</td></tr>
+      <tr><td>Shortcuts</td><td>Full hotkey reference</td></tr>
+    </table>
+
+    <h2 id="shortcuts">Shortcuts</h2>
+    <table>
+      <tr><th>Keys</th><th>Action</th></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>Command palette</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd></td><td>Buddy notch anywhere</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd></td><td>Show / hide Hive window</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>Send / newline</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Close dialog, modal, or notch</td></tr>
+    </table>
 
     <h2 id="faq">FAQ</h2>
     <h3>Windows only?</h3>
-    <p>Yes, today — the buddy's click/type engine is Windows-native.</p>
+    <p>Yes, today — the buddy click/type engine is Windows-native.</p>
     <h3>Is it free?</h3>
-    <p>Yes. The preview is invite-only.</p>
+    <p>The preview is invite-only. Join the waitlist — we’ll write when a spot opens.</p>
     <h3>Where is my data?</h3>
-    <p>On your machine: chats and settings in local storage. The website keeps only auth + profile rows in Supabase.</p>
+    <p>On your machine: chats and settings in local storage. The website keeps only auth + profile rows.</p>
     <h3>Voice calling?</h3>
     <p>Coming soon. Dictation and spoken answers work now.</p>
     <h3>The buddy vanished!</h3>
-    <p>It hides with the app by design — show Hive and it returns. Behind fullscreen games, the OS compositor wins; it comes back after.</p>
+    <p>It hides with the app by design — show Hive and it returns.</p>
 
     <footer>
       <span>Hive Docs — by <strong style="color:var(--text);">Apis</strong></span>
@@ -246,17 +210,6 @@
 
 <script>
   (function () {
-    // copy buttons
-    document.querySelectorAll('.copy').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var el = document.getElementById(btn.getAttribute('data-for'));
-        var done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); };
-        if (!el) return;
-        if (navigator.clipboard) navigator.clipboard.writeText(el.innerText).then(done, done);
-        else done();
-      });
-    });
-    // active sidebar link
     var links = Array.prototype.slice.call(document.querySelectorAll('aside a'));
     var map = {};
     links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
@@ -275,7 +228,6 @@
         if (el) io.observe(el);
       });
     }
-    // mobile sidebar
     var mb = document.getElementById('menu-btn');
     var sb = document.getElementById('sidebar');
     if (mb && sb) mb.addEventListener('click', function () { sb.classList.toggle('open'); });
