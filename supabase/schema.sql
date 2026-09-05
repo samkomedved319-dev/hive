@@ -49,3 +49,19 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+create or replace function public.waitlist_stats()
+returns json
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select json_build_object(
+    'total', (select count(*) from public.profiles),
+    'waiting', (select count(*) from public.profiles where status = 'pending')
+  );
+$$;
+
+grant execute on function public.waitlist_stats() to anon, authenticated;
+
