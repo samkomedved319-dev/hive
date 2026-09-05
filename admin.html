@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hive — waitlist review</title>
+<link rel="icon" type="image/png" href="logohive.png" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --bg:#000; --s1:#16181c; --line:#2f3336; --text:#e7e9ea; --dim:#71767b; --orange:#f08a24; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  .wrap { max-width:880px; margin:0 auto; padding:28px 20px 80px; }
+  a { color:#1d9bf0; text-decoration:none; }
+  h1 { font-size:28px; letter-spacing:-.03em; }
+  .sub { color:var(--dim); margin:8px 0 28px; font-size:14.5px; }
+  .row { background:var(--s1); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:10px; display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .who b { display:block; font-size:15px; }
+  .who span { font-size:12.5px; color:var(--dim); }
+  .badge { font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:4px 8px; border-radius:999px; }
+  .pending { color:#F2C14E; background:rgba(242,193,78,.12); }
+  .approved { color:#10B981; background:rgba(16,185,129,.12); }
+  .denied { color:#F04438; background:rgba(240,68,56,.12); }
+  .none { color:var(--dim); background:rgba(113,118,123,.14); }
+  button { font-family:inherit; cursor:pointer; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--text); }
+  button.ok { background:#10B981; color:#000; border:none; }
+  button.no { background:#F04438; color:#fff; border:none; }
+  .acts { display:flex; gap:8px; }
+  #msg { color:var(--dim); margin-bottom:16px; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a></p>
+  <h1>Waitlist review</h1>
+  <p class="sub">Approve or decline people who asked to join. Only admins can do this.</p>
+  <p id="msg">Loading…</p>
+  <div id="list"></div>
+</div>
+<script>
+  var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var msg = document.getElementById('msg');
+  var list = document.getElementById('list');
+  async function boot() {
+    var s = await sb.auth.getSession();
+    var user = s.data && s.data.session && s.data.session.user;
+    if (!user) { msg.textContent = 'Sign in on the homepage first, then open this page.'; return; }
+    var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    if (!me.data || !me.data.is_admin) { msg.textContent = 'Admins only. In Supabase profiles, set is_admin = true on your row.'; return; }
+    await load();
+  }
+  async function load() {
+    var r = await sb.rpc('admin_waitlist');
+    if (r.error) { msg.textContent = r.error.message; return; }
+    var rows = r.data || [];
+    if (typeof rows === 'string') try { rows = JSON.parse(rows); } catch (e) { rows = []; }
+    msg.textContent = rows.length + ' members.';
+    rows.sort(function (a, b) { var o = { pending: 0, none: 1, approved: 2, denied: 3 }; return (o[a.status] || 9) - (o[b.status] || 9); });
+    list.innerHTML = rows.map(function (p) {
+      var when = p.waitlist_at || p.created_at;
+      var whenTxt = when ? new Date(when).toLocaleString() : '';
+      var acts = p.status === 'pending' ? '<div class="acts"><button class="ok" onclick="review(\'' + p.id + '\',\'approved\')">Approve</button><button class="no" onclick="review(\'' + p.id + '\',\'denied\')">Decline</button></div>' : '<div class="acts"></div>';
+      return '<div class="row"><div class="who"><b>' + escapeHtml(p.display_name || p.email || p.id) + '</b><span>' + escapeHtml(p.email || '') + ' · ' + whenTxt + '</span></div><span class="badge ' + p.status + '">' + p.status + '</span>' + acts + '</div>';
+    }).join('');
+  }
+  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return ({ '&':'&', '<':'<', '>':'>', '"':'"', "'":'&#39;' })[c]; }); }
+  async function review(id, decision) {
+    var note = decision === 'denied' ? (window.prompt('Optional note for this decline:') || null) : null;
+    var r = await sb.rpc('review_waitlist', { target: id, decision: decision, note: note });
+    if (r.error) { msg.textContent = r.error.message; return; }
+    await load();
+  }
+  boot();
+</script>
+</body>
+</html>
