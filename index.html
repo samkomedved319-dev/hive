@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Hive — the desktop AI that does things</title>
 <meta name="description" content="Hive is a black-theme desktop AI workspace: cited web research, code, a cursor buddy, a notch popover, and real PC control. Free, local-first, Windows." />
 <link rel="icon" type="image/png" href="logohive.png" />
@@ -237,6 +237,11 @@
   }
 
   @media (max-width: 640px) {
+    .btn, #m-menu-btn, #m-menu a { min-height: 44px; }
+    .chip-float { display: none; }
+    .cta { flex-direction: column; align-items: stretch; }
+    .cta .btn { justify-content: center; }
+
     .nav-links { display: none; }
     #m-menu-btn { display: block; }
     #m-menu.open { display: flex; }
@@ -257,6 +262,7 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#buddy">Buddy</a>
+      <a href="#hivebox">HiveBox</a>
       <a href="docs.html">Docs</a>
       <a href="#soon">Coming soon</a>
       <a href="#waitlist">Waitlist</a>
@@ -269,6 +275,7 @@
   <div id="m-menu">
     <a href="#features">Features</a>
     <a href="#buddy">Buddy</a>
+      <a href="#hivebox">HiveBox</a>
     <a href="docs.html">Docs</a>
     <a href="#soon">Coming soon</a>
     <a href="#waitlist">Waitlist</a>
@@ -330,6 +337,8 @@
       <div class="card"><div class="ic">👑</div><h3>Agent swarm</h3><p>Hive CEO delegates to Apollo, Athena and custom bots. Conversations persist per chat.</p></div>
       <div class="card"><div class="ic">🖱️</div><h3>Real PC control</h3><p><code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code> — or just ask, and the buddy emits the actions.</p></div>
       <div class="card"><div class="ic">🎙️</div><h3>Voice in, voice out</h3><p>Push-to-talk dictation, spoken answers, and a voice-call mode for hands-free sessions.</p></div>
+      <div class="card"><div class="ic">☁</div><h3>HiveBox cloud computer</h3><p>A live panel for Scout, Hive, and Pulse jobs — tiny disk, logs, and safe shell commands.</p></div>
+      <div class="card"><div class="ic">⚡</div><h3>Fast · Auto · Heavy · Max</h3><p>You never pick a model name. The title-bar pill is the mode; Hive chooses the model.</p></div>
       <div class="card"><div class="ic">⬛</div><h3>True-black UI</h3><p>OLED black, monochrome type, hairline borders. Quiet by design — dark-only, like it should be.</p></div>
     </div>
     <div class="buddy" id="buddy">
@@ -357,6 +366,17 @@
     </div>
   </section>
 
+  <section class="section reveal" id="hivebox" style="padding-top:32px;">
+    <div class="eyebrow">HiveBox</div>
+    <h2>A cloud computer in the rail.</h2>
+    <p class="lead">Toggle the panel in the title bar. Scout, Hive, and Pulse jobs share a tiny disk and a live log. Commands stay small on purpose: ls, cat, echo, pwd, uname.</p>
+    <div class="grid">
+      <div class="card"><div class="ic">💾</div><h3>Tiny disk</h3><p>A Durable Object keeps files and logs between jobs.</p></div>
+      <div class="card"><div class="ic">✦</div><h3>Scout · Hive · Pulse</h3><p>Three concurrent workers you can watch as they run.</p></div>
+      <div class="card"><div class="ic">🛡</div><h3>Audit overlay</h3><p>Every buddy click, type, and shell lands in the overlay log.</p></div>
+    </div>
+  </section>
+
   <section class="dl reveal" id="download">
     <span class="ver">v0.0.1 · Windows 10/11 · free</span>
     <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Take Hive home.</h2>
@@ -372,7 +392,7 @@
     <h2>Coming soon.</h2>
     <p class="lead">The next things landing in Hive.</p>
     <div class="grid">
-      <div class="card"><div class="ic">📞</div><h3>Voice calling <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Full duplex voice calls with Hive and your bots. Today: push-to-talk dictation, spoken answers, and Telegram messaging.</p></div>
+      <div class="card"><div class="ic">📞</div><h3>Voice calling <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Full duplex voice calls with Hive and your bots. Today: push-to-talk dictation and spoken answers.</p></div>
       <div class="card"><div class="ic">🟠</div><h3>Buddy everywhere <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>The cursor buddy is coming to the web: the same orange companion, the same notch, right in your browser.</p></div>
       <div class="card"><div class="ic">📱</div><h3>Mobile <span style="font-size:11px;font-weight:600;color:var(--orange);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:6px;">SOON</span></h3><p>Hive on the go — chat, swarm, and buddy status from your pocket.</p></div>
     </div>
