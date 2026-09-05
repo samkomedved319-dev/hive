@@ -65,3 +65,19 @@ $$;
 
 grant execute on function public.waitlist_stats() to anon, authenticated;
 
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  email text,
+  body text not null,
+  rating int,
+  status text not null default 'pending'
+    check (status in ('pending', 'reviewed', 'shipped')),
+  created_at timestamptz not null default now()
+);
+alter table public.feedback enable row level security;
+drop policy if exists "insert feedback" on public.feedback;
+create policy "insert feedback" on public.feedback for insert with check (true);
+drop policy if exists "read own feedback" on public.feedback;
+create policy "read own feedback" on public.feedback for select using (true);
+
+

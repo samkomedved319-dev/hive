@@ -725,10 +725,23 @@
   </div>
 </div>
 
-<div id="desktop-handoff" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;">
-  <div style="width:min(380px,92vw);background:var(--surface-1);border:1px solid var(--line);border-radius:18px;padding:28px;text-align:center;">
-    <p style="font-size:16px;font-weight:650;margin:0 0 8px;">Opening Hive</p>
-    <p style="font-size:13.5px;color:var(--dim);line-height:1.5;margin:0;">Allow the browser to open the Hive app. You’re signed in.</p>
+<div id="desktop-handoff" style="display:none;position:fixed;inset:0;z-index:120;background:#050608;align-items:center;justify-content:center;padding:24px;flex-direction:column;">
+  <style>
+    @keyframes hive-spin { to { transform: rotate(360deg); } }
+    @keyframes hive-pulse { 0%,100% { opacity:.4; transform:scale(.92);} 50% { opacity:1; transform:scale(1);} }
+    @keyframes hive-in { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:none;} }
+  </style>
+  <div style="animation:hive-in .6s ease both;text-align:center;">
+    <div style="width:88px;height:88px;margin:0 auto 18px;position:relative;">
+      <div style="position:absolute;inset:0;border-radius:22px;border:2px solid rgba(242,193,78,.25);animation:hive-pulse 1.6s ease infinite;"></div>
+      <svg viewBox="0 0 32 32" width="88" height="88" style="animation:hive-spin 4s linear infinite;color:#F2C14E;">
+        <path d="M16 3.4 28.2 10.3v11.4L16 28.6 3.8 21.7V10.3L16 3.4Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M16 10.6 22.4 14.2v7.2L16 24.9 9.6 21.4v-7.2L16 10.6Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <p style="font-size:22px;font-weight:750;margin:0 0 8px;letter-spacing:-.03em;">You're in.</p>
+    <p style="font-size:14px;color:#9ca3af;line-height:1.55;margin:0 0 6px;">Opening the Hive desktop app…</p>
+    <p style="font-size:12px;color:#71767b;margin:0;">Allow the browser to open <code>hive://</code></p>
   </div>
 </div>
 <div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeAuth()">

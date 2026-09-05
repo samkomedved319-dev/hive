@@ -120,9 +120,12 @@
     <a href="#notch">Notch &amp; hotkeys</a>
     <a href="#pc">PC control</a>
     <a href="#swarm">Swarm &amp; bots</a>
+    <a href="#modes">Modes</a>
+    <a href="#cloud">Cloud computer</a>
     <div class="group">Configure</div>
     <a href="#settings">Settings</a>
     <a href="#accounts">Website accounts</a>
+    <a href="#feedback">Feedback</a>
     <a href="#shortcuts">Shortcuts</a>
     <div class="group">Help</div>
     <a href="#faq">FAQ</a>
@@ -151,7 +154,7 @@ npm run dev</code><button class="copy" data-for="cb1">Copy</button></pre>
     <h2 id="chat">Chat &amp; search</h2>
     <p>Your messages render as right-aligned bubbles; assistant replies are plain full-width text. Ask anything — or trigger the search pipeline with words like <em>search, latest, news, who is, lookup</em>.</p>
     <p>Web answers arrive with <strong>Verified Sources</strong> cards: domain chip, title, snippet, blue links. Suggestion chips on the empty state (<em>Research the web · Write code · Control my PC</em>) send one-tap starter prompts.</p>
-    <div class="callout blue"><strong>Tip.</strong> The model + thinking-mode pill in the title bar changes depth per message: Fast, Reasoning, Heavy, Max, or PC Control.</div>
+    <div class="callout blue"><strong>Tip.</strong> The mode pill in the title bar is Fast, Auto, Heavy, or Max — Hive picks the model for you.</div>
 
     <h2 id="buddy">Buddy</h2>
     <p>The orange house avatar (a live morphing engine, not a GIF) can live in three places:</p>
@@ -214,6 +217,23 @@ npm run dev</code><button class="copy" data-for="cb1">Copy</button></pre>
       <tr><td><kbd>Enter</kbd> / <kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>Send / newline</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialog, modal, or notch</td></tr>
     </table>
+
+    <h2 id="modes">Modes</h2>
+    <p>You never pick a raw model name. Four modes:</p>
+    <table>
+      <tr><th>Mode</th><th>Use it when</th></tr>
+      <tr><td>Fast</td><td>Quick answers, lowest wait.</td></tr>
+      <tr><td>Auto</td><td>Default. Hive balances speed and quality.</td></tr>
+      <tr><td>Heavy</td><td>Harder questions, more analysis.</td></tr>
+      <tr><td>Max</td><td>Deepest pass. Slowest, most thorough.</td></tr>
+    </table>
+
+    <h2 id="cloud">Cloud computer</h2>
+    <p>The right-side panel is a live view of <strong>HiveBox</strong> — a Cloudflare Durable Object that keeps a tiny disk, logs, and concurrent Scout / Hive / Pulse jobs. Toggle the canvas / panel button in the title bar. Commands on Cloudflare are limited to <code>ls</code>, <code>cat</code>, <code>echo</code>, <code>pwd</code>, <code>uname</code>.</p>
+    <p>Set <code>HIVE_CLOUD_URL</code> and <code>HIVE_CLOUD_TOKEN</code> in the desktop <code>.env</code> after deploying the worker.</p>
+
+    <h2 id="feedback">Feedback</h2>
+    <p>The <strong>Feedback</strong> button in the title bar sends a review to the website admin panel. Admins open <a href="admin.html">admin.html</a> to approve waitlist members and feedback.</p>
 
     <h2 id="faq">FAQ</h2>
     <h3>Windows only?</h3>

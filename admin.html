@@ -33,9 +33,12 @@
 <div class="wrap">
   <p style="margin-bottom:18px;"><a href="index.html">← Hive</a></p>
   <h1>Waitlist review</h1>
-  <p class="sub">Approve or decline people who asked to join. Only admins can do this.</p>
+  <p class="sub">Approve members. Feedback from the desktop app appears below.</p>
   <p id="msg">Loading…</p>
   <div id="list"></div>
+  <h1 style="margin-top:36px;">Feedback</h1>
+  <p class="sub">Reviews sent from Hive desktop.</p>
+  <div id="fb"></div>
 </div>
 <script>
   var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
@@ -50,6 +53,18 @@
     var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     if (!me.data || !me.data.is_admin) { msg.textContent = 'Admins only. In Supabase profiles, set is_admin = true on your row.'; return; }
     await load();
+    await loadFb();
+  }
+  async function loadFb() {
+    var box = document.getElementById('fb');
+    if (!box) return;
+    var r = await sb.from('feedback').select('*').order('created_at', { ascending: false }).limit(50);
+    if (r.error) { box.innerHTML = '<p class="sub">' + escapeHtml(r.error.message) + '</p>'; return; }
+    var rows = r.data || [];
+    if (!rows.length) { box.innerHTML = '<p class="sub">No feedback yet.</p>'; return; }
+    box.innerHTML = rows.map(function (p) {
+      return '<div class="row"><div class="who"><b>' + escapeHtml(p.email || 'anon') + '</b><span>★' + (p.rating || '-') + ' · ' + escapeHtml(p.body || '') + '</span></div><span class="badge pending">' + escapeHtml(p.status || 'pending') + '</span></div>';
+    }).join('');
   }
   async function load() {
     var r = await sb.rpc('admin_waitlist');
