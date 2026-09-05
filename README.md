@@ -1,32 +1,18 @@
-# Hive website — live Supabase auth
+# Hive website — live Supabase waitlist
 
-The marketing site at [samkomedved319-dev.github.io/hive](https://samkomedved319-dev.github.io/hive) uses **Supabase email + password** login.
+Live site: https://samkomedved319-dev.github.io/hive
 
-- Project: **HiveWEB** (`nqkmnmwbmikbgopwkvse`, eu-west-1)
-- URL: `https://nqkmnmwbmikbgopwkvse.supabase.co`
-- Provider: Email (sign-up open, auto-confirm on)
-- New accounts land as **pending** in `public.profiles`
-- Each account gets a sequential **customer number** (`#1`, `#2`, …)
+Creating an account puts you on the **waitlist**. The page shows how many people are waiting — not a private login number.
 
-## What is wired
+## Where to view members
 
-| Piece | Status |
-| --- | --- |
-| Email / password Auth | On |
-| Auto-confirm email | On |
-| `public.profiles` + RLS | On |
-| Trigger `on_auth_user_created` | Creates a pending profile on signup |
-| Site URL / redirect allowlist | GitHub Pages + localhost |
-| Site keys in `index.html` | Project URL + anon (public) key |
+Open the Supabase project **HiveWEB**:
 
-The anon key in `index.html` is the public browser key. Do **not** put the `service_role` key in the site.
+1. [Authentication → Users](https://supabase.com/dashboard/project/nqkmnmwbmikbgopwkvse/auth/users) — every account
+2. [Table Editor → profiles](https://supabase.com/dashboard/project/nqkmnmwbmikbgopwkvse/editor) — waitlist rows (`status` = pending / approved / denied)
 
-## Approve members
+Flip `status` to `approved` to let someone off the waitlist.
 
-Supabase dashboard → Table Editor → `profiles` → set `status` to `approved` or `denied`.
+## Public count
 
-Members can rename themselves, toggle email updates, and sign out from the avatar chip.
-
-## Recreate the schema
-
-If you spin up a new project, run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor, then paste the new project URL + anon key into `index.html`.
+`waitlist_stats()` returns `{ total, waiting }` for the site. Anon clients can call it; emails stay private.
