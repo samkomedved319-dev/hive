@@ -49,13 +49,13 @@
   <div id="emails" style="margin-top:18px;"></div>
 
   <h1 style="margin-top:48px;">Installer releases</h1>
-  <p class="sub">Installers live on a public GitHub repo. Other devices download with no GitHub account.</p>
+  <p class="sub">Downloads are <b>not</b> on this website. They are on the public GitHub repo <a href="https://github.com/samkomedved319-dev/hive-releases">hive-releases</a> — anyone on any device, no GitHub account. v0.0.3 exists but has <b>no .exe attached yet</b>.</p>
   <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-    <a class="btn primary" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases">Open downloads</a>
-    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/edit/v0.0.3">Attach installer to v0.0.3</a>
+    <a class="btn primary" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/edit/v0.0.3">Attach the .exe to v0.0.3</a>
     <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/new">New version</a>
+    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases">What people see</a>
   </p>
-  <p class="sub">On the edit page: drag the .exe into Assets, then Update release. After that anyone can download without signing in.</p>
+  <p class="sub">On the edit page, drag the installer into <b>Attach binaries</b>, then Update release. After that the public link works.</p>
   <div id="gh-rels"><p class="sub">Loading GitHub releases…</p></div>
 
   <h1 style="margin-top:36px;">Feedback</h1>
@@ -74,11 +74,13 @@
     var user = s.data && s.data.session && s.data.session.user;
     if (!user) {
       msg.textContent = 'Sign in on the homepage first (same browser), then refresh this page.';
+      loadGh();
       return;
     }
     var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     if (!me.data || !me.data.is_admin) {
       msg.textContent = 'Signed in as ' + (user.email || '') + ' — this account is not admin.';
+      loadGh();
       return;
     }
     await load();
