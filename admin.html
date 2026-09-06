@@ -35,7 +35,7 @@
     color:var(--text); font:14px inherit; padding:11px 14px;
   }
   textarea { min-height:120px; resize:vertical; }
-  .form { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; }
+  .form { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; display:none; }
   pre { white-space:pre-wrap; background:#0b0c10; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:12px; color:#c9ccd1; display:none; margin-top:12px; }
 </style>
 </head>
@@ -72,7 +72,7 @@
 <script>
   var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
-  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   var msg = document.getElementById('msg');
   var list = document.getElementById('list');
   var SETUP = `-- Run once in Supabase → SQL Editor\ninsert into storage.buckets (id, name, public)\n  values ('installers', 'installers', true)\n  on conflict (id) do nothing;\n\ncreate table if not exists public.releases (\n  id uuid primary key default gen_random_uuid(),\n  version text not null,\n  title text not null,\n  notes text,\n  filename text not null,\n  file_path text not null,\n  file_url text,\n  file_size bigint,\n  is_latest boolean not null default true,\n  created_at timestamptz not null default now()\n);\nalter table public.releases enable row level security;\ndrop policy if exists \"public read releases\" on public.releases;\ncreate policy \"public read releases\" on public.releases for select using (true);\ndrop policy if exists \"admin write releases\" on public.releases;\ncreate policy \"admin write releases\" on public.releases for all\n  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))\n  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));\n\ndrop policy if exists \"public read installers\" on storage.objects;\ncreate policy \"public read installers\" on storage.objects for select using (bucket_id = 'installers');\ndrop policy if exists \"admin write installers\" on storage.objects;\ncreate policy \"admin write installers\" on storage.objects for all\n  using (bucket_id = 'installers' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))\n  with check (bucket_id = 'installers' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));`;
@@ -80,9 +80,21 @@
   async function boot() {
     var s = await sb.auth.getSession();
     var user = s.data && s.data.session && s.data.session.user;
-    if (!user) { msg.textContent = 'Sign in on the homepage first, then open this page.'; return; }
+    var form = document.getElementById('rel-form');
+    if (!user) {
+      msg.textContent = 'Sign in on the homepage first (same browser), then refresh this page.';
+      document.getElementById('rel-msg').textContent = 'Not signed in — cannot publish.';
+      return;
+    }
     var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    if (!me.data || !me.data.is_admin) { msg.textContent = 'Admins only. In Supabase profiles, set is_admin = true on your row.'; return; }
+    if (!me.data || !me.data.is_admin) {
+      msg.textContent = 'Signed in as ' + (user.email || '') + ' — this account is not admin.';
+      document.getElementById('rel-msg').textContent = 'Admins only.';
+      return;
+    }
+    if (form) form.style.display = 'block';
+    msg.textContent = 'Signed in as ' + (user.email || '') + ' (admin).';
+    document.getElementById('rel-msg').textContent = 'Ready to publish.';
     await load();
     await loadFb();
     await loadReleases();
@@ -161,33 +173,47 @@
     var title = document.getElementById('rel-title').value.trim();
     var notes = document.getElementById('rel-notes').value.trim();
     var file = document.getElementById('rel-file').files[0];
-    if (!file) return;
+    var relMsg = document.getElementById('rel-msg');
+    if (!file) { relMsg.textContent = 'Pick the installer file.'; return; }
+    var sess = await sb.auth.getSession();
+    var token = sess.data && sess.data.session && sess.data.session.access_token;
+    if (!token) { relMsg.textContent = 'Sign in on the homepage first, then refresh.'; return; }
     var filename = file.name || ('HiveSetup-' + version + '.exe');
-    var path = version + '/' + filename;
-    document.getElementById('rel-msg').textContent = 'Uploading ' + filename + ' (' + Math.round(file.size / 1048576) + ' MB)…';
-    var up = await sb.storage.from('installers').upload(path, file, { upsert: true });
-    if (up.error) {
-      var retry = await sb.storage.from('installers').remove([path]);
-      up = await sb.storage.from('installers').upload(path, file, { upsert: true });
-    }
-    if (up.error) {
-      document.getElementById('rel-msg').textContent = 'Upload failed: ' + up.error.message + (up.error.message && up.error.message.indexOf('admin') >= 0 ? ' Sign in as the admin account on the homepage first.' : '');
+    var path = version + '/' + filename.replace(/[^\w.\-()+ ]/g, '_');
+    relMsg.textContent = 'Uploading ' + filename + ' (' + (file.size / 1048576).toFixed(1) + ' MB)…';
+    var encoded = path.split('/').map(encodeURIComponent).join('/');
+    var put = await fetch(SUPABASE_URL + '/storage/v1/object/installers/' + encoded, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + token,
+        'x-upsert': 'true',
+        'Content-Type': file.type || 'application/octet-stream'
+      },
+      body: file
+    });
+    if (!put.ok) {
+      var body = await put.text();
+      relMsg.textContent = 'Upload failed (' + put.status + '): ' + body;
       return;
     }
     var pub = sb.storage.from('installers').getPublicUrl(path);
-    await sb.from('releases').update({ is_latest: false }).eq('is_latest', true);
-    var ins = await sb.from('releases').insert({
-      version: version,
-      title: title,
-      notes: notes,
-      filename: filename,
-      file_path: path,
-      file_url: pub.data && pub.data.publicUrl,
-      file_size: file.size,
-      is_latest: true
+    var fileUrl = pub.data && pub.data.publicUrl;
+    relMsg.textContent = 'Saving release…';
+    var ins = await sb.rpc('publish_release', {
+      p_version: version,
+      p_title: title,
+      p_notes: notes,
+      p_filename: filename,
+      p_file_path: path,
+      p_file_url: fileUrl,
+      p_file_size: file.size
     });
-    if (ins.error) { document.getElementById('rel-msg').textContent = 'Saved file but could not list it: ' + ins.error.message; return; }
-    document.getElementById('rel-msg').textContent = 'Published v' + version + '.';
+    if (ins.error) {
+      relMsg.textContent = 'File uploaded, listing failed: ' + ins.error.message;
+      return;
+    }
+    relMsg.textContent = 'Published v' + version + '. Open the download page.';
     e.target.reset();
     await loadReleases();
   });
