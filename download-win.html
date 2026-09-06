@@ -4,43 +4,83 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Download Hive for Windows</title>
+<title>Meet Hive</title>
 <link rel="icon" type="image/png" href="logohive.png" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --bg:#050506; --text:#e7e9ea; --dim:#8b9098; --gold:#F2C14E; --line:#2f3336; }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100dvh; background: var(--bg); color: var(--text);
-    font-family: Inter, system-ui, sans-serif; display: flex; align-items: center; justify-content: center;
-    padding: 32px; text-align: center;
+  :root { --bg:#000; --text:#fff; --dim:#8b8b8b; --line:#2a2a2a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { min-height:100%; background:#000; color:#fff; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  body { display:flex; flex-direction:column; min-height:100dvh; }
+  .top { display:flex; justify-content:center; padding:28px 16px 0; }
+  .pill {
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid #2a2a2a; background:#111; color:#ddd;
+    border-radius:999px; padding:8px 14px; font-size:13px; text-decoration:none;
   }
-  .card { max-width: 440px; }
-  img { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 16px; }
-  h1 { font-size: 22px; margin: 0 0 8px; }
-  p { color: var(--dim); font-size: 14px; line-height: 1.55; margin: 0 0 16px; }
+  .pill span { color:#8b8b8b; }
+  main {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:48px 20px 80px;
+  }
+  h1 {
+    font-size: clamp(44px, 8vw, 84px);
+    font-weight: 600; letter-spacing: -.04em; line-height: .95;
+  }
+  h1 img { width: .82em; height: .82em; vertical-align: -0.08em; margin: 0 .12em; border-radius: 18%; }
+  .lead {
+    color:#8b8b8b; font-size: clamp(16px, 2.2vw, 20px);
+    max-width: 560px; line-height: 1.55; margin: 22px auto 36px;
+  }
+  .cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
   .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--gold); color: #111; font-weight: 700; font-size: 15px;
-    padding: 12px 22px; border-radius: 999px; text-decoration: none; border: none;
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    height:48px; padding:0 22px; border-radius:999px; font: 600 15px/1 inherit;
+    text-decoration:none; border:1px solid transparent; cursor:pointer;
   }
-  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); margin-top: 10px; }
-  .meta { font-size: 12px; color: var(--dim); margin-top: 18px; }
-  a { color: var(--gold); }
+  .btn.white { background:#fff; color:#000; }
+  .btn.ghost { background:transparent; color:#fff; border-color:#333; }
+  .meta { margin-top:28px; color:#6f6f6f; font-size:13px; }
+  .meta b { color:#cfcfcf; font-weight:600; }
+  footer { padding: 0 20px 28px; text-align:center; color:#555; font-size:12px; }
+  footer a { color:#777; }
 </style>
 </head>
 <body>
-  <div class="card">
-    <img src="logohive.png" alt="Hive" />
-    <h1>Download Hive</h1>
-    <p>Windows 10 / 11 installer. No GitHub account. Anyone with this page or the file link can download.</p>
-    <a class="btn" id="dl" href="https://github.com/samkomedved319-dev/Hive-Desktop/releases/latest/download/Hive-Setup-0.0.1.4.exe">Download Hive-Setup.exe</a>
-    <br />
-    <a class="btn ghost" href="https://github.com/samkomedved319-dev/hive-releases/releases/latest/download/Hive-Setup-0.0.1.4.exe">Mirror (hive-releases)</a>
-    <p class="meta">
-      Direct file (no sign-in):<br />
-      <a href="https://github.com/samkomedved319-dev/Hive-Desktop/releases/latest/download/Hive-Setup-0.0.1.4.exe">Hive-Setup-0.0.1.4.exe</a><br /><br />
-      Hive Free includes GLM 5.3 and Nemotron Nano — 1,000,000 tokens/day, no API key.
-    </p>
+  <div class="top">
+    <a class="pill" href="index.html">Hive is here <span>·</span> Back to the site</a>
   </div>
+  <main>
+    <h1>Meet <img src="logohive.png" alt="" /> Hive</h1>
+    <p class="lead">A Windows workspace for concurrent agents. Give them real work. They search, write, and come back with finished work.</p>
+    <div class="cta">
+      <a class="btn white" id="dl" href="#">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 14.5h16V16H0zM8.75 0v9.44l3.47-3.47.53.53L8 11.25 3.25 6.5l.53-.53 3.47 3.47V0z"/></svg>
+        Download for Windows
+      </a>
+      <a class="btn ghost" href="index.html">Contact / waitlist</a>
+    </div>
+    <p class="meta" id="meta">Loading latest installer…</p>
+  </main>
+  <footer>Windows 10 / 11 · No GitHub account · Hive Free: GLM 5.3 + Nemotron Nano</footer>
+<script>
+  var FALLBACK = 'https://github.com/samkomedved319-dev/hive-releases/releases/latest/download/Hive-Setup-0.0.1.4.exe';
+  var sb = window.supabase.createClient(
+    'https://nqkmnmwbmikbgopwkvse.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU'
+  );
+  var dl = document.getElementById('dl');
+  var meta = document.getElementById('meta');
+  dl.href = FALLBACK;
+  sb.from('releases').select('*').eq('is_latest', true).order('created_at', { ascending: false }).limit(1)
+    .then(function (r) {
+      var row = r.data && r.data[0];
+      if (!row) { meta.textContent = 'Windows 10 / 11 · latest public build'; return; }
+      var url = row.file_url || FALLBACK;
+      dl.href = url;
+      meta.innerHTML = 'Version <b>' + (row.version || '') + '</b>' + (row.title ? ' · ' + row.title : '') + ' · no sign-in';
+    })
+    .catch(function () { meta.textContent = 'Windows 10 / 11'; });
+</script>
 </body>
 </html>
