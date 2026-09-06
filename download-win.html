@@ -110,6 +110,7 @@
 <script>
   var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
+  var GH_RELEASES = 'https://api.github.com/repos/samkomedved319-dev/hive-releases/releases?per_page=20';
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   function fmtSize(n) {
@@ -118,39 +119,75 @@
     if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
     return (n / 1048576).toFixed(1) + ' MB';
   }
-  function urlFor(row) {
-    if (row.file_url) return row.file_url;
-    return SUPABASE_URL + '/storage/v1/object/public/installers/' + row.file_path;
+
+  function fromGithub(rel) {
+    var asset = (rel.assets || []).find(function (a) {
+      return /\.exe$|\.msi$/i.test(a.name);
+    }) || (rel.assets || [])[0];
+    if (!asset) return null;
+    var version = (rel.tag_name || rel.name || '').replace(/^v/i, '');
+    return {
+      id: 'gh-' + rel.id,
+      version: version,
+      title: rel.name || ('Hive ' + version),
+      notes: rel.body || '',
+      filename: asset.name,
+      file_url: asset.browser_download_url,
+      file_size: asset.size,
+      created_at: rel.published_at || rel.created_at,
+      is_latest: !rel.prerelease && !rel.draft
+    };
   }
 
-  sb.from('releases').select('*').order('created_at', { ascending: false }).then(function (r) {
-    var rows = r.data || [];
-    var latest = rows.find(function (x) { return x.is_latest; }) || rows[0];
+  function paint(rows) {
+    var latest = rows[0];
     var dl = document.getElementById('dl');
     var meta = document.getElementById('meta');
     if (!latest) {
       meta.textContent = 'No build published yet.';
       return;
     }
-    dl.href = urlFor(latest);
+    dl.href = latest.file_url;
     dl.setAttribute('download', latest.filename || ('HiveSetup-' + latest.version + '.exe'));
     dl.removeAttribute('aria-disabled');
     dl.textContent = 'Download Hive ' + latest.version;
     var bits = ['v' + latest.version, 'Windows'];
     if (latest.file_size) bits.push(fmtSize(latest.file_size));
     if (latest.created_at) bits.push(new Date(latest.created_at).toLocaleDateString());
-    meta.textContent = bits.join(' · ');
+    meta.textContent = bits.join(' \u00b7 ');
     if (latest.notes) {
       document.getElementById('notes-wrap').hidden = false;
       document.getElementById('notes').textContent = latest.notes;
     }
-    var older = rows.filter(function (x) { return x.id !== latest.id; });
+    var older = rows.slice(1);
     if (older.length) {
       document.getElementById('prev').hidden = false;
       document.getElementById('prev-list').innerHTML = older.map(function (x) {
-        return '<a href="' + urlFor(x) + '" download><b>' + (x.title || ('Hive ' + x.version)) + '</b><span>v' + x.version + (x.file_size ? ' · ' + fmtSize(x.file_size) : '') + '</span></a>';
+        return '<a href="' + x.file_url + '" download><b>' + (x.title || ('Hive ' + x.version)) + '</b><span>v' + x.version + (x.file_size ? ' \u00b7 ' + fmtSize(x.file_size) : '') + '</span></a>';
       }).join('');
     }
+  }
+
+  Promise.all([
+    fetch(GH_RELEASES).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+    sb.from('releases').select('*').order('created_at', { ascending: false })
+  ]).then(function (pair) {
+    var gh = (pair[0] || []).filter(function (x) { return !x.draft; }).map(fromGithub).filter(Boolean);
+    var sbRows = (pair[1] && pair[1].data) || [];
+    sbRows = sbRows.map(function (x) {
+      return {
+        id: x.id,
+        version: x.version,
+        title: x.title,
+        notes: x.notes,
+        filename: x.filename,
+        file_url: x.file_url || (SUPABASE_URL + '/storage/v1/object/public/installers/' + x.file_path),
+        file_size: x.file_size,
+        created_at: x.created_at
+      };
+    });
+    var rows = gh.length ? gh : sbRows;
+    paint(rows);
   });
 </script>
 </body>
