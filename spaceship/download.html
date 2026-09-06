@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>Download Hive</title>
-<link rel="icon" type="image/png" href="https://hivetools.pro/hive/logohive.png" />
+<link rel="icon" type="image/png" href="logohive.png" />
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { min-height:100%; background:#000; color:#fff;
@@ -47,48 +47,30 @@
 </head>
 <body>
   <div class="top">
-    <a class="pill" id="home" href="https://hivetools.pro/hive/">Hive is here <span>·</span> Back to the site</a>
+    <a class="pill" href="index.html">Hive is here <span>·</span> Back to the site</a>
   </div>
   <main>
-    <h1>Meet <img id="logo" src="https://hivetools.pro/hive/logohive.png" alt="" /> Hive</h1>
-    <p class="lead">Windows installer. Direct GitHub download — no waitlist, no extra click. Login is hivetools.pro inside the app.</p>
+    <h1>Meet <img src="logohive.png" alt="" /> Hive</h1>
+    <p class="lead">Windows installer. Direct download of the newest published build. Sign in at hivetools.pro inside the app.</p>
     <div class="cta">
       <a class="btn" id="dl" href="https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.5/Hive-Setup-0.0.1.5.exe">Download 0.0.1.5</a>
-      <a class="btn ghost" id="all" href="https://github.com/samkomedved319-dev/Hive-Desktop/releases">All releases</a>
+      <a class="btn ghost" href="https://github.com/samkomedved319-dev/Hive-Desktop/releases">All releases</a>
     </div>
-    <p class="meta" id="meta">Version <b>0.0.1.5</b> · Windows 10 / 11 · live installer</p>
+    <p class="meta" id="meta">Version <b>0.0.1.5</b> · Windows 10 / 11 · 150.5 MB</p>
     <ul class="notes" id="notes" hidden></ul>
   </main>
-  <footer>Windows 10 / 11 · <a id="home2" href="https://hivetools.pro/hive/">hivetools.pro/hive</a></footer>
+  <footer>Windows 10 / 11 · <a href="index.html">hivetools.pro/hive</a></footer>
 <script>
 (function () {
   var FALLBACK = {
     version: '0.0.1.5',
-    fileUrl: 'https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.5/Hive-Setup-0.0.1.5.exe'
+    fileUrl: 'https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.5/Hive-Setup-0.0.1.5.exe',
+    size: 157581551
   };
-  var WANT = '0.0.1.6';
   var API = 'https://api.github.com/repos/samkomedved319-dev/Hive-Desktop';
   var dl = document.getElementById('dl');
   var meta = document.getElementById('meta');
   var notes = document.getElementById('notes');
-  var home = document.getElementById('home');
-  var home2 = document.getElementById('home2');
-  var logo = document.getElementById('logo');
-
-  var path = (location.pathname || '/').replace(/index\.html$/i, '');
-  var siteRoot;
-  if (/\/download\/?$/.test(path)) siteRoot = path.replace(/\/download\/?$/, '/');
-  else if (/\/download\.html$/.test(path)) siteRoot = path.replace(/\/download\.html$/, '/');
-  else siteRoot = path.charAt(path.length - 1) === '/' ? path : path + '/';
-  if (location.hostname) {
-    var localHome = location.origin + siteRoot;
-    home.href = localHome;
-    home2.href = localHome;
-  }
-  logo.onerror = function () {
-    this.onerror = null;
-    this.src = siteRoot + 'logohive.png';
-  };
 
   function bytes(n) {
     n = Number(n || 0);
@@ -122,15 +104,11 @@
       .catch(function () { return null; });
   }
 
-  useInstaller(FALLBACK.version, FALLBACK.fileUrl);
+  useInstaller(FALLBACK.version, FALLBACK.fileUrl, FALLBACK.size);
 
-  getJson(API + '/releases/tags/' + WANT).then(function (wanted) {
-    var hit = exeFromRelease(wanted);
-    if (hit) { useInstaller(hit.version, hit.fileUrl, hit.size); return; }
-    return getJson(API + '/releases/latest').then(function (latest) {
-      hit = exeFromRelease(latest);
-      if (hit) useInstaller(hit.version, hit.fileUrl, hit.size);
-    });
+  getJson(API + '/releases/latest').then(function (latest) {
+    var hit = exeFromRelease(latest);
+    if (hit) useInstaller(hit.version, hit.fileUrl, hit.size);
   });
 
   fetch('https://raw.githubusercontent.com/samkomedved319-dev/HiveSOURCE/main/latest.json?t=' + Date.now())
