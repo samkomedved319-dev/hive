@@ -54,9 +54,9 @@
   <footer>Windows 10 / 11 · Installer from Hive-Desktop</footer>
 <script>
   var FALLBACK = {
-    version: '0.0.1.3',
-    fileName: 'Hive-Setup-0.0.1.3.exe',
-    fileUrl: 'https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/v0.0.1.3/Hive-Setup-0.0.1.3.exe'
+    version: '0.0.1.5',
+    fileName: 'Hive-Setup-0.0.1.5.exe',
+    fileUrl: 'https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.5/Hive-Setup-0.0.1.5.exe'
   };
   var sb = window.supabase.createClient(
     'https://nqkmnmwbmikbgopwkvse.supabase.co',
@@ -72,14 +72,26 @@
     dl.disabled = false;
     meta.innerHTML = 'Version <b>' + version + '</b> · Windows 10 / 11';
   }
-  sb.from('releases').select('*').eq('is_latest', true).order('created_at', { ascending: false }).limit(1)
-    .then(function (r) {
-      var row = r.data && r.data[0];
-      if (row && row.file_url) {
-        useInstaller(row.version || '', row.file_url, row.filename || ('Hive-Setup-' + (row.version || '') + '.exe'));
-        return;
-      }
-      useInstaller(FALLBACK.version, FALLBACK.fileUrl, FALLBACK.fileName);
+  function fromManifest(j) {
+    if (!j || !j.downloadUrl) return false;
+    var ver = String(j.version || FALLBACK.version);
+    var name = 'Hive-Setup-' + ver + '.exe';
+    useInstaller(ver, j.downloadUrl, name);
+    return true;
+  }
+  fetch('https://raw.githubusercontent.com/samkomedved319-dev/HiveSOURCE/main/latest.json?t=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (fromManifest(j)) return;
+      return sb.from('releases').select('*').eq('is_latest', true).order('created_at', { ascending: false }).limit(1)
+        .then(function (r) {
+          var row = r.data && r.data[0];
+          if (row && row.file_url) {
+            useInstaller(row.version || '', row.file_url, row.filename || ('Hive-Setup-' + (row.version || '') + '.exe'));
+            return;
+          }
+          useInstaller(FALLBACK.version, FALLBACK.fileUrl, FALLBACK.fileName);
+        });
     })
     .catch(function () {
       useInstaller(FALLBACK.version, FALLBACK.fileUrl, FALLBACK.fileName);
