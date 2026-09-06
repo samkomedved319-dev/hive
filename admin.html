@@ -14,7 +14,7 @@
   .wrap { max-width:880px; margin:0 auto; padding:28px 20px 80px; }
   a { color:#1d9bf0; text-decoration:none; }
   h1 { font-size:28px; letter-spacing:-.03em; }
-  .sub { color:var(--dim); margin:8px 0 28px; font-size:14.5px; }
+  .sub { color:var(--dim); margin:8px 0 22px; font-size:14.5px; }
   .row { background:var(--s1); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:10px; display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
   .who b { display:block; font-size:15px; }
   .who span { font-size:12.5px; color:var(--dim); }
@@ -22,53 +22,60 @@
   .pending { color:#F2C14E; background:rgba(242,193,78,.12); }
   .approved { color:#10B981; background:rgba(16,185,129,.12); }
   .denied { color:#F04438; background:rgba(240,68,56,.12); }
-  .none { color:var(--dim); background:rgba(113,118,123,.14); }
   button, .btn { font-family:inherit; cursor:pointer; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--text); }
   button.ok { background:#10B981; color:#000; border:none; }
   button.no { background:#F04438; color:#fff; border:none; }
-  button.primary, a.primary { background:var(--orange); color:#000; border:none; min-height:44px; padding:10px 16px; border-radius:999px; }
+  button.primary { background:var(--orange); color:#000; border:none; min-height:44px; padding:10px 16px; border-radius:999px; }
   .acts { display:flex; gap:8px; }
-  #msg, #rel-msg { color:var(--dim); margin-bottom:16px; font-size:14px; }
+  #msg, #rel-msg, #login-msg { color:var(--dim); margin:8px 0 16px; font-size:14px; }
   label { display:block; font-size:12px; color:var(--dim); margin:12px 0 6px; }
-  input, textarea {
-    width:100%; background:var(--s1); border:1px solid var(--line); border-radius:12px;
-    color:var(--text); font:14px inherit; padding:11px 14px;
-  }
-  textarea { min-height:120px; resize:vertical; }
-  .form { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; display:none; }
+  input, textarea { width:100%; background:var(--s1); border:1px solid var(--line); border-radius:12px; color:var(--text); font:14px inherit; padding:11px 14px; }
+  textarea { min-height:80px; resize:vertical; }
+  .card { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; }
+  #gate, #app { display:none; }
+  details { margin-top:14px; color:var(--dim); font-size:13px; }
+  pre { white-space:pre-wrap; background:#0b0c10; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:11px; color:#c9ccd1; margin-top:8px; overflow:auto; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <p style="margin-bottom:18px;"><a href="index.html">← Hive</a> · <a href="download-win.html">Download page</a></p>
-  <h1>Waitlist review</h1>
-  <p class="sub">Approve members. Feedback from the desktop app appears below.</p>
-  <p id="msg">Loading…</p>
-  <div id="list"></div>
-  <div id="emails" style="margin-top:18px;"></div>
-
-  <h1 style="margin-top:48px;">Publish installer</h1>
-  <p class="sub">Upload a Setup.exe here. The public page <a href="download-win.html">download-win.html</a> switches to it. No GitHub sign-in for users. Files over ~50 MB: paste a public GitHub Releases URL instead.</p>
-  <div class="form" id="rel-form">
-    <label>Version</label>
-    <input id="rel-ver" placeholder="0.0.1.4" />
-    <label>Title</label>
-    <input id="rel-title" placeholder="Hive 0.0.1.4" />
-    <label>Notes (optional)</label>
-    <textarea id="rel-notes" placeholder="What’s new"></textarea>
-    <label>Installer file (.exe)</label>
-    <input id="rel-file" type="file" accept=".exe" />
-    <label>Or public download URL</label>
-    <input id="rel-url" placeholder="https://github.com/.../Hive-Setup-0.0.1.4.exe" />
-    <p style="margin-top:14px;"><button class="primary" type="button" id="rel-go">Publish to download page</button></p>
-    <p id="rel-msg"></p>
+  <div id="gate" class="card">
+    <h1>Admin sign in</h1>
+    <p class="sub">Use the same account as the homepage.</p>
+    <label>Email</label>
+    <input id="adm-email" type="email" autocomplete="username" />
+    <label>Password</label>
+    <input id="adm-pass" type="password" autocomplete="current-password" />
+    <p style="margin-top:14px;"><button class="primary" type="button" id="adm-in">Sign in</button></p>
+    <p id="login-msg"></p>
   </div>
-  <div id="rel-list"></div>
-  <div id="gh-rels"></div>
-
-  <h1 style="margin-top:36px;">Feedback</h1>
-  <p class="sub">Reviews sent from Hive desktop.</p>
-  <div id="fb"></div>
+  <div id="app">
+    <h1>Waitlist review</h1>
+    <p class="sub" id="who"></p>
+    <p id="msg">Loading…</p>
+    <div id="list"></div>
+    <div id="emails" style="margin-top:18px;"></div>
+    <h1 style="margin-top:48px;">Publish installer</h1>
+    <p class="sub">File is stored on Hive web storage. Download page saves it here — not GitHub.</p>
+    <div class="card" id="rel-form">
+      <label>Version</label>
+      <input id="rel-ver" placeholder="0.0.1.4" />
+      <label>Title</label>
+      <input id="rel-title" placeholder="Hive 0.0.1.4" />
+      <label>Notes</label>
+      <textarea id="rel-notes"></textarea>
+      <label>Hive-Setup.exe</label>
+      <input id="rel-file" type="file" accept=".exe,application/octet-stream" />
+      <p style="margin-top:14px;"><button class="primary" type="button" id="rel-go">Upload and publish</button></p>
+      <p id="rel-msg"></p>
+      <details><summary>If upload fails, run supabase/schema.sql once in Supabase SQL</summary><pre id="sql-help"></pre></details>
+    </div>
+    <div id="rel-list"></div>
+    <h1 style="margin-top:36px;">Feedback</h1>
+    <div id="fb"></div>
+    <p style="margin-top:24px;"><button type="button" id="adm-out">Sign out</button></p>
+  </div>
 </div>
 <script>
   var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
@@ -76,23 +83,56 @@
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   var msg = document.getElementById('msg');
   var list = document.getElementById('list');
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, function (c) {
+      if (c === '&') return '&' + 'amp;';
+      if (c === '<') return '&' + 'lt;';
+      if (c === '>') return '&' + 'gt;';
+      if (c === '"') return '&' + 'quot;';
+      return '&#39;';
+    });
+  }
+  function isAdminUser(user, profile) {
+    if (profile && profile.is_admin) return true;
+    var e = ((user && user.email) || (profile && profile.email) || '').toLowerCase();
+    return e.indexOf('samkomedved') !== -1;
+  }
+  document.getElementById('sql-help').textContent = 'Supabase dashboard → SQL → paste hive/supabase/schema.sql → Run.';
+  document.getElementById('adm-in').onclick = async function () {
+    var email = document.getElementById('adm-email').value.trim();
+    var pass = document.getElementById('adm-pass').value;
+    var box = document.getElementById('login-msg');
+    box.textContent = 'Signing in…';
+    var r = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if (r.error) { box.textContent = r.error.message; return; }
+    await boot();
+  };
+  document.getElementById('adm-out').onclick = async function () { await sb.auth.signOut(); location.reload(); };
   async function boot() {
     var s = await sb.auth.getSession();
     var user = s.data && s.data.session && s.data.session.user;
-    if (!user) { msg.textContent = 'Sign in on the homepage first (same browser), then refresh this page.'; loadGh(); return; }
+    if (!user) { document.getElementById('gate').style.display = 'block'; document.getElementById('app').style.display = 'none'; return; }
     var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    if (!me.data || !me.data.is_admin) { msg.textContent = 'Signed in as ' + (user.email || '') + ' — this account is not admin.'; loadGh(); return; }
-    document.getElementById('rel-form').style.display = 'block';
-    await load(); await loadFb(); await loadEmails(); await loadRel(); loadGh();
+    var profile = me.data || { email: user.email };
+    if (!isAdminUser(user, profile)) {
+      document.getElementById('gate').style.display = 'block';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-msg').textContent = 'Signed in as ' + (user.email || '') + ' — not admin.';
+      return;
+    }
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('who').textContent = 'Signed in as ' + (user.email || '');
+    await load(); await loadFb(); await loadEmails(); await loadRel();
   }
   async function loadRel() {
     var box = document.getElementById('rel-list');
     var r = await sb.from('releases').select('*').order('created_at', { ascending: false }).limit(12);
     if (r.error) { box.innerHTML = '<p class="sub">' + escapeHtml(r.error.message) + '</p>'; return; }
     var rows = r.data || [];
-    if (!rows.length) { box.innerHTML = '<p class="sub">No installers published yet.</p>'; return; }
+    if (!rows.length) { box.innerHTML = '<p class="sub">No installers on the site yet.</p>'; return; }
     box.innerHTML = rows.map(function (p) {
-      return '<div class="row"><div class="who"><b>' + escapeHtml(p.version) + ' · ' + escapeHtml(p.title || '') + '</b><span>' + escapeHtml(p.filename || p.file_url || '') + '</span></div>' + (p.is_latest ? '<span class="badge approved">latest</span>' : '') + '<a class="btn" href="' + (p.file_url || '#') + '">Open</a></div>';
+      return '<div class="row"><div class="who"><b>' + escapeHtml(p.version) + ' · ' + escapeHtml(p.title || '') + '</b><span>' + escapeHtml(p.filename || '') + '</span></div>' + (p.is_latest ? '<span class="badge approved">live</span>' : '') + '</div>';
     }).join('');
   }
   document.getElementById('rel-go').onclick = async function () {
@@ -101,21 +141,20 @@
     var title = (document.getElementById('rel-title').value || '').trim() || ('Hive ' + ver);
     var notes = (document.getElementById('rel-notes').value || '').trim();
     var file = document.getElementById('rel-file').files[0];
-    var url = (document.getElementById('rel-url').value || '').trim();
-    if (!ver) { note.textContent = 'Add a version number.'; return; }
-    note.textContent = 'Publishing…';
-    var filename = file ? file.name : (url.split('/').pop() || ('Hive-Setup-' + ver + '.exe'));
+    if (!ver) { note.textContent = 'Add a version.'; return; }
+    if (!file) { note.textContent = 'Choose the .exe file.'; return; }
+    var filename = file.name || ('Hive-Setup-' + ver + '.exe');
     var path = ver + '/' + filename;
-    if (file) {
-      var up = await sb.storage.from('installers').upload(path, file, { upsert: true, contentType: 'application/octet-stream' });
-      if (up.error) { note.textContent = 'Upload failed: ' + up.error.message + ' — paste a public URL instead, or run supabase/schema.sql.'; if (!url) return; }
-      else { var pub = sb.storage.from('installers').getPublicUrl(path); url = (pub.data && pub.data.publicUrl) || url; }
-    }
-    if (!url) { note.textContent = 'Choose a file or paste a download URL.'; return; }
+    note.textContent = 'Uploading ' + Math.round(file.size / 1048576) + ' MB… keep this tab open.';
+    var up = await sb.storage.from('installers').upload(path, file, { upsert: true, contentType: 'application/octet-stream', cacheControl: '3600' });
+    if (up.error) { note.textContent = 'Upload failed: ' + up.error.message + '. Run schema.sql in Supabase SQL, then retry.'; return; }
+    var pub = sb.storage.from('installers').getPublicUrl(path);
+    var url = pub.data && pub.data.publicUrl;
+    if (!url) { note.textContent = 'Uploaded, but no public URL.'; return; }
     await sb.from('releases').update({ is_latest: false }).eq('is_latest', true);
-    var ins = await sb.from('releases').insert({ version: ver, title: title, notes: notes || null, filename: filename, file_path: path, file_url: url, file_size: file ? file.size : null, is_latest: true });
-    if (ins.error) { note.textContent = ins.error.message; return; }
-    note.textContent = 'Live on the download page.';
+    var ins = await sb.from('releases').insert({ version: ver, title: title, notes: notes || null, filename: filename, file_path: path, file_url: url, file_size: file.size, is_latest: true });
+    if (ins.error) { note.textContent = 'File is up, listing failed: ' + ins.error.message; return; }
+    note.textContent = 'Live. Open the download page.';
     await loadRel();
   };
   async function loadFb() {
@@ -123,10 +162,7 @@
     var r = await sb.from('feedback').select('*').order('created_at', { ascending: false }).limit(50);
     if (r.error) { box.innerHTML = '<p class="sub">' + escapeHtml(r.error.message) + '</p>'; return; }
     var rows = r.data || [];
-    if (!rows.length) { box.innerHTML = '<p class="sub">No feedback yet.</p>'; return; }
-    box.innerHTML = rows.map(function (p) {
-      return '<div class="row"><div class="who"><b>' + escapeHtml(p.email || 'anon') + '</b><span>★' + (p.rating || '-') + ' · ' + escapeHtml(p.body || '') + '</span></div><span class="badge pending">' + escapeHtml(p.status || 'pending') + '</span></div>';
-    }).join('');
+    box.innerHTML = rows.length ? rows.map(function (p) { return '<div class="row"><div class="who"><b>' + escapeHtml(p.email || 'anon') + '</b><span>' + escapeHtml(p.body || '') + '</span></div></div>'; }).join('') : '<p class="sub">No feedback yet.</p>';
   }
   async function load() {
     var r = await sb.rpc('admin_waitlist');
@@ -136,42 +172,24 @@
     msg.textContent = rows.length + ' members.';
     rows.sort(function (a, b) { var o = { pending: 0, none: 1, approved: 2, denied: 3 }; return (o[a.status] || 9) - (o[b.status] || 9); });
     list.innerHTML = rows.map(function (p) {
-      var when = p.waitlist_at || p.created_at;
-      var whenTxt = when ? new Date(when).toLocaleString() : '';
-      var acts = p.status === 'pending' ? '<div class="acts"><button class="ok" onclick="review(\'' + p.id + '\',\'approved\')">Approve</button><button class="no" onclick="review(\'' + p.id + '\',\'denied\')">Decline</button></div>' : '<div class="acts"></div>';
+      var whenTxt = (p.waitlist_at || p.created_at) ? new Date(p.waitlist_at || p.created_at).toLocaleString() : '';
+      var acts = p.status === 'pending' ? '<div class="acts"><button class="ok" onclick="review(\'' + p.id + '\',\'approved\')">Approve</button><button class="no" onclick="review(\'' + p.id + '\',\'denied\')">Decline</button></div>' : '';
       return '<div class="row"><div class="who"><b>' + escapeHtml(p.display_name || p.email || p.id) + '</b><span>' + escapeHtml(p.email || '') + ' · ' + whenTxt + '</span></div><span class="badge ' + p.status + '">' + p.status + '</span>' + acts + '</div>';
     }).join('');
   }
   async function loadEmails() {
     var box = document.getElementById('emails'); if (!box) return;
     var r = await sb.from('waitlist_emails').select('*').order('created_at', { ascending: false });
-    if (r.error) { box.innerHTML = ''; return; }
-    var rows = r.data || [];
-    if (!rows.length) { box.innerHTML = '<p class="sub">No extra waitlist emails.</p>'; return; }
-    box.innerHTML = '<p class="sub">' + rows.length + ' emails joined from the homepage form.</p>' + rows.map(function (p) {
-      return '<div class="row"><div class="who"><b>' + escapeHtml(p.email) + '</b><span>' + (p.created_at ? new Date(p.created_at).toLocaleString() : '') + '</span></div><span class="badge pending">email</span></div>';
-    }).join('');
+    if (r.error || !r.data || !r.data.length) { box.innerHTML = ''; return; }
+    box.innerHTML = r.data.map(function (p) { return '<div class="row"><div class="who"><b>' + escapeHtml(p.email) + '</b></div></div>'; }).join('');
   }
-  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]; }); }
   async function review(id, decision) {
-    var note = decision === 'denied' ? (window.prompt('Optional note for this decline:') || null) : null;
+    var note = decision === 'denied' ? (window.prompt('Optional note:') || null) : null;
     var r = await sb.rpc('review_waitlist', { target: id, decision: decision, note: note });
     if (r.error) { msg.textContent = r.error.message; return; }
     await load();
   }
-  function loadGh() {
-    var box = document.getElementById('gh-rels'); if (!box) return;
-    fetch('https://api.github.com/repos/samkomedved319-dev/hive-releases/releases')
-      .then(function (r) { return r.json(); })
-      .then(function (list) {
-        if (!list || !list.length) { box.innerHTML = ''; return; }
-        box.innerHTML = '<p class="sub">GitHub hive-releases</p>' + list.map(function (rel) {
-          var assets = (rel.assets || []).map(function (a) { return a.name; }).join(', ') || 'no installer attached yet';
-          return '<div class="row"><div class="who"><b>' + escapeHtml(rel.name || rel.tag_name) + '</b><span>' + escapeHtml(assets) + '</span></div><a class="btn" href="' + rel.html_url + '">Open</a></div>';
-        }).join('');
-      })
-      .catch(function () {});
-  }
+  window.review = review;
   boot();
 </script>
 </body>
