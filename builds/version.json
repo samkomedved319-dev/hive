@@ -3,10 +3,10 @@
   "channel": "Windows preview",
   "released": "2026-09-06",
   "filename": "Hive-Setup-0.0.1.4.exe",
-  "pageFile": "download-win.html",
+  "pageFile": "download/",
   "githubRelease": "https://github.com/samkomedved319-dev/Hive-Desktop/releases/latest/download/Hive-Setup-0.0.1.4.exe",
   "mirror": "https://github.com/samkomedved319-dev/hive-releases/releases/latest/download/Hive-Setup-0.0.1.4.exe",
-  "page": "https://samkomedved319-dev.github.io/hive/download-win.html",
+  "page": "https://samkomedved319-dev.github.io/hive/download/",
   "notes": "Hive Free TokenRouter models, 1M tokens/day.",
   "minOs": "Windows 10 / 11"
 }
