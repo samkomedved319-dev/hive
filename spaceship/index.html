@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hive — the desktop AI that does things</title>
+<meta name="description" content="Hive is a black-theme desktop AI workspace for Windows: cited research, a concurrent swarm, a cursor buddy, and real PC control. Invite-only preview." />
+<link rel="icon" type="image/png" href="logohive.png" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
+<style>
+
+  :root {
+    --bg: #000000;
+    --surface-1: #16181c;
+    --surface-2: #1e2126;
+    --line: #2f3336;
+    --text: #e7e9ea;
+    --dim: #71767b;
+    --link: #1d9bf0;
+    --orange: #f08a24;
+    --ease: cubic-bezier(.16, .8, .24, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: var(--link); text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+  nav { display: flex; align-items: center; padding: 10px 14px;
+    position: sticky; top: 12px; z-index: 40; background: rgba(10,10,12,.78);
+    backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; flex-shrink: 0; }
+  .ver { font-size: 11px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+  .nav-links { display: flex; align-items: center; justify-content: flex-end; gap: 16px; font-size: 14px; color: var(--dim); flex: 1; min-width: 0; }
+  .nav-links a { color: var(--dim); white-space: nowrap; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: #fff; color: #000; font-weight: 600; font-size: 14px;
+    padding: 10px 18px; border-radius: 999px; border: none; cursor: pointer;
+    position: relative; overflow: hidden; font-family: inherit;
+    white-space: nowrap; flex-shrink: 0;
+    transition: transform .28s var(--ease), box-shadow .28s var(--ease);
+  }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(255,255,255,.08); }
+  .btn:active { transform: scale(.96); }
+  .hero { text-align: center; padding: 72px 0 24px; position: relative; }
+  .aura { position: absolute; left: 50%; top: 24px; width: 340px; height: 340px;
+    transform: translateX(-50%); border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(240,138,36,.16) 0%, rgba(240,138,36,0) 65%);
+    animation: auraPulse 5s ease-in-out infinite; }
+  @keyframes auraPulse { 0%, 100% { opacity: .7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.12); } }
+  .mascot { width: 96px; height: 96px; margin: 0 auto 22px; animation: breathe 4.2s ease-in-out infinite, heroIn .8s var(--ease) both; }
+  .mascot .eyes { animation: blink 4.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95.5% { transform: scaleY(.08); } }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  @keyframes heroIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  h1 { font-size: clamp(38px, 6vw, 64px); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; animation: heroIn .8s var(--ease) .1s both; }
+  h1 .o { color: var(--orange); }
+  .sub { color: var(--dim); font-size: clamp(15px, 2.4vw, 19px); line-height: 1.6; max-width: 620px; margin: 20px auto 32px; animation: heroIn .8s var(--ease) .22s both; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; animation: heroIn .8s var(--ease) .34s both; }
+  .cta .btn { flex: 1 1 160px; max-width: 240px; }
+  .keys { margin-top: 18px; font-size: 13px; color: var(--dim); animation: heroIn .8s var(--ease) .44s both; }
+  .keys kbd, kbd {
+    font-family: ui-monospace, monospace; font-size: 12px; background: var(--surface-1);
+    border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--text);
+  }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  .demo { margin: 40px auto 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    background: #0b0c10; box-shadow: 0 40px 120px rgba(0,0,0,.85); }
+  .demo-bar { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--line); background:#12141a; flex-wrap:wrap; }
+  .demo-bar i { width:11px; height:11px; border-radius:50%; background:#2a2d34; display:block; }
+  .demo-bar span { font-size:12px; color: var(--dim); }
+  .demo-bar .pill { margin-left:auto; font-size:11px; border:1px solid var(--line); border-radius:999px; padding:3px 10px; color:var(--dim); display:inline-flex; align-items:center; gap:6px; }
+  .demo-bar .pill b { width:7px; height:7px; border-radius:50%; background:#10b981; display:block; }
+  .demo-stage { position:relative; background:#000; min-height:180px; }
+  .demo-stage img { display:block; width:100%; height:auto; animation: demoIn .38s var(--ease); }
+  @keyframes demoIn { from { opacity:.4; filter:blur(6px);} to { opacity:1; filter:none;} }
+  .swarm { position:absolute; top:12px; left:12px; display:flex; flex-wrap:wrap; gap:6px; pointer-events:none; }
+  .swarm span { background:rgba(18,20,26,.92); border:1px solid var(--line); border-radius:999px; padding:5px 10px; font-size:11px; display:inline-flex; align-items:center; gap:6px; }
+  .swarm span i { width:6px; height:6px; border-radius:50%; background:var(--orange); display:block; }
+  .allow-card { position:absolute; right:16px; bottom:16px; width:min(320px, calc(100% - 32px));
+    background:rgba(18,20,26,.96); border:1px solid var(--line); border-radius:14px; padding:16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+  .allow-card h4 { font-size:14px; margin-bottom:4px; }
+  .allow-card p { font-size:12px; color:var(--dim); margin-bottom:12px; }
+  .allow-card .row { display:flex; gap:8px; }
+  .allow-card .row button { flex:1; min-height:40px; }
+  .ok-chip { position:absolute; top:12px; left:12px; background:rgba(18,20,26,.92); border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px; font-size:12px; }
+  .palette { position:absolute; inset:0; background:rgba(0,0,0,.55); display:flex; justify-content:center; padding:12% 16px 16px; }
+  .palette-box { width:min(420px,100%); background:var(--surface-1); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.7); }
+  .palette-box .hd { padding:12px 16px; border-bottom:1px solid var(--line); font-size:13px; color:var(--dim); }
+  .palette-box button { width:100%; text-align:left; background:none; border:0; color:var(--text); padding:12px 16px; font:13.5px inherit; cursor:pointer; display:flex; justify-content:space-between; }
+  .palette-box button:hover { background:#1a1c22; }
+  .palette-box button em { color:var(--dim); font-style:normal; font-size:12px; }
+  .demo-chips { display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px; border-top:1px solid var(--line); }
+  .demo-chips button { background:#16181f; border:1px solid var(--line); color:#c9ccd1; border-radius:999px; padding:8px 14px; font:12.5px inherit; cursor:pointer; min-height:40px; }
+  .demo-chips button.on { background:var(--orange); color:#000; border-color:var(--orange); font-weight:700; }
+  .demo-note { text-align:center; color:var(--dim); font-size:13.5px; margin-top:12px; }
+  .marquee { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    margin-top: 56px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+  .marquee-track { display: flex; width: max-content; padding: 16px 0; animation: marquee 28s linear infinite; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  .marquee span { font-size: 13.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); padding: 0 28px; white-space: nowrap; }
+  .marquee span i { color: var(--orange); font-style: normal; margin-right: 28px; }
+  .eyebrow { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--orange); margin-bottom: 14px; }
+  .stats { display: flex; justify-content: center; gap: clamp(24px, 6vw, 72px); margin-top: 48px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat b { display: block; font-size: clamp(30px, 4.5vw, 44px); font-weight: 700; letter-spacing: -.02em; }
+  .stat span { font-size: 13px; color: var(--dim); }
+  .section { padding: 88px 0 8px; }
+  .section h2 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; text-align: center; }
+  .section p.lead { color: var(--dim); text-align: center; margin: 12px auto 0; max-width: 560px; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 44px; }
+  .card { background: var(--surface-1); border: 1px solid var(--line); border-radius: 16px; padding: 26px;
+    transition: transform .4s var(--ease), border-color .4s, box-shadow .4s; }
+  .card:hover { transform: translateY(-3px); border-color: #3f444a; box-shadow: 0 18px 50px rgba(0,0,0,.45); }
+  .card h3 { font-size: 17px; margin: 0 0 8px; }
+  .card p { font-size: 14px; color: var(--dim); line-height: 1.65; }
+  .card code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; color: var(--text); }
+  .buddy { display: flex; align-items: center; gap: 28px; background: var(--surface-1); border: 1px solid var(--line); border-radius: 20px; padding: 28px; margin-top: 16px; flex-wrap: wrap; }
+  .buddy img { width: 120px; height: 120px; object-fit: contain; flex-shrink: 0; }
+  .buddy h3 { font-size: 22px; margin-bottom: 8px; }
+  .buddy p { color: var(--dim); font-size: 14.5px; line-height: 1.7; max-width: 640px; }
+  .gallery { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:36px; }
+  .gallery img { width:100%; height:auto; border-radius:14px; border:1px solid var(--line); display:block; background:#0b0c10; }
+  .gallery figcaption { font-size:12px; color:var(--dim); margin-top:6px; }
+  .dl { text-align: center; padding: 88px 0; }
+  .dl .ver { display: inline-block; font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; margin-bottom: 20px; }
+  .wait-pill { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line);
+    background: rgba(240,138,36,.08); color: var(--text); border-radius:999px; padding:8px 14px;
+    font-size:13px; font-weight:600; }
+  .wait-pill b { color: var(--orange); font-variant-numeric: tabular-nums; }
+  .wait-form { display: flex; gap: 10px; justify-content: center; align-items: stretch; flex-wrap: wrap; max-width: 520px; margin: 0 auto; }
+  .wait-form input {
+    flex: 1 1 220px; min-width: 0; min-height: 44px;
+    background: var(--surface-1); border: 1px solid var(--line); border-radius: 999px;
+    padding: 11px 20px; color: var(--text); font-size: 14px; outline: none; font-family: inherit;
+  }
+  footer { border-top: 1px solid var(--line); padding: 28px 0 44px; }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; padding: 40px 0 8px; }
+  .foot-grid h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-bottom: 12px; }
+  .foot-grid a { display: block; font-size: 13.5px; color: var(--dim); margin: 7px 0; }
+  .foot-grid a:hover { color: var(--text); }
+  .status-dot { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--dim); margin-top: 12px; }
+  .status-dot i { width: 8px; height: 8px; border-radius: 50%; background: #10b981;
+    box-shadow: 0 0 10px rgba(16,185,129,.8); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+  #m-menu-btn { display: none; background: none; border: 1px solid var(--line); border-radius: 9px;
+    color: var(--text); font-size: 15px; padding: 5px 11px; cursor: pointer; min-height: 40px; min-width: 40px; }
+  #m-menu { display: none; }
+  #s-login { display: inline-flex; align-items: center; flex-shrink: 0; }
+  .modal-card { animation: popIn .38s var(--ease) both; }
+  @keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+  .drawer { animation: slideIn .42s var(--ease) both; }
+  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  #auth-modal, #profile-panel { animation: fadeScrim .28s var(--ease) both; }
+  @keyframes fadeScrim { from { opacity: 0; } to { opacity: 1; } }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+    opacity: .035; mix-blend-mode: overlay;
+  }
+  @media (max-width: 1080px) {
+    .nav-links { display: none; }
+    #m-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+    #m-menu.open { display: flex; }
+    #m-menu { flex-direction: column; gap: 4px; margin-top: 10px; background: rgba(10,10,12,.95);
+      border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+    #m-menu a { color: var(--dim); font-size: 14px; padding: 9px 12px; border-radius: 9px; }
+    #m-menu a:hover, #m-menu a:active { background: var(--surface-1); color: var(--text); }
+  }
+  @media (max-width: 800px) {
+    .gallery { grid-template-columns: 1fr; }
+    .allow-card { left:16px; right:16px; width:auto; }
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+    .nav-cta-community { display: none !important; }
+    .cta .btn { max-width: none; }
+  }
+  @media (max-width: 640px) {
+    .btn, #m-menu-btn, #m-menu a { min-height: 44px; }
+    .cta { flex-direction: column; align-items: stretch; }
+    .cta .btn { justify-content: center; flex: 1 1 auto; max-width: none; width: 100%; }
+    .nav-cta-waitlist { display: none !important; }
+    .wait-form { flex-direction: column; align-items: stretch; }
+    .wait-form .btn { width: 100%; }
+    nav { padding: 10px 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .mascot, .mascot .eyes, nav, .aura, .marquee-track, .hero h1, .hero .sub, .hero .cta, .hero .keys, .demo-stage img { animation: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .modal-card, .drawer, #auth-modal, #profile-panel { animation: none !important; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <div class="brand">
+      <img src="logohive.png" alt="Hive logo" width="30" height="30" style="border-radius:7px;display:block;" />
+      Hive
+      <span class="ver">v0.0.1.5</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#buddy">Buddy</a>
+      <a href="#hivebox">HiveBox</a>
+      <a href="docs.html">Docs</a>
+      <a href="#waitlist">Waitlist</a>
+    </div>
+    <div class="nav-actions">
+      <a class="btn ghost nav-cta-community" href="https://discord.gg/jN3MxRqvsV" target="_blank" rel="noopener noreferrer">Join community</a>
+      <a class="btn nav-cta-waitlist" href="#waitlist">Join waitlist</a>
+      <span id="s-login"></span>
+      <button id="m-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+  </nav>
+  <div id="m-menu">
+    <a href="#features">Features</a>
+    <a href="#buddy">Buddy</a>
+    <a href="#hivebox">HiveBox</a>
+    <a href="docs.html">Docs</a>
+    <a href="https://discord.gg/jN3MxRqvsV" target="_blank" rel="noopener noreferrer">Join community</a>
+    <a href="#waitlist">Join waitlist</a>
+  </div>
+
+  <header class="hero">
+    <div class="aura"></div>
+    <svg class="mascot" viewBox="-115 -115 230 230" role="img" aria-label="Hive mascot">
+      <defs>
+        <mask id="m" maskUnits="userSpaceOnUse" x="-115" y="-115" width="230" height="230">
+          <circle cx="0" cy="0" r="100" fill="#fff"/>
+          <g id="site-eyes">
+          <g class="eyes" fill="#000">
+            <path transform="matrix(0.8875,-0.318,0.4203,0.8553,18.9,-40.9)" d="M-9.3 -11.3A9.3 9.3 0 0 1 0 -20.6L0 -20.6A9.3 9.3 0 0 1 9.3 -11.3L9.3 11.3A9.3 9.3 0 0 1 0 20.6L0 20.6A9.3 9.3 0 0 1 -9.3 11.3Z"/>
+            <path transform="matrix(0.6642,-0.0626,0.4203,0.8553,61.82,-51.43)" d="M-9.3 -11.3A9.3 9.3 0 0 1 0 -20.6L0 -20.6A9.3 9.3 0 0 1 9.3 -11.3L9.3 11.3A9.3 9.3 0 0 1 0 20.6L0 20.6A9.3 9.3 0 0 1 -9.3 11.3Z"/>
+          </g>
+          </g>
+        </mask>
+      </defs>
+      <g mask="url(#m)"><rect x="-115" y="-115" width="230" height="230" fill="#f08a24"/></g>
+    </svg>
+    <h1>The desktop AI<br/>that <span class="o">does things.</span></h1>
+    <p class="sub">Cited web research, a concurrent swarm, a cursor buddy, and a notch that can click, type, and open apps on your PC.</p>
+    <div class="cta">
+      <a class="btn" href="#waitlist">Download for Windows</a>
+      <a class="btn ghost" href="#waitlist">Join the waitlist</a>
+      <a class="btn ghost" href="https://discord.gg/jN3MxRqvsV" target="_blank" rel="noopener noreferrer">Join community</a>
+    </div>
+    <p class="keys">Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd> anywhere — the buddy pops, the app never opens.</p>
+  </header>
+
+  <div class="demo reveal" id="demo">
+    <div class="demo-bar">
+      <i></i><i></i><i></i>
+      <span>Hive — product demo</span>
+      <span class="pill"><b></b> Auto</span>
+      <button class="btn ghost" id="demo-k" type="button" style="padding:6px 12px;font-size:12px;">Ctrl+K</button>
+    </div>
+    <div class="demo-stage">
+      <img id="demo-img" src="logohive.png" alt="Hive empty workspace" width="1600" height="900" />
+      <div class="swarm" id="demo-swarm" hidden>
+        <span><i></i> Scout +0ms</span>
+        <span><i></i> Hive +2ms</span>
+        <span><i></i> Pulse +4ms</span>
+      </div>
+      <div class="allow-card" id="demo-allow" hidden>
+        <h4>Operator wants to open Notepad</h4>
+        <p>Destructive shell is blocked. This one is safe.</p>
+        <div class="row">
+          <button class="btn" type="button" id="demo-allow-yes">Allow</button>
+          <button class="btn ghost" type="button" id="demo-allow-no">Deny</button>
+        </div>
+      </div>
+      <div class="ok-chip" id="demo-ok" hidden>● Allowed · notepad launched</div>
+      <div class="palette" id="demo-pal" hidden>
+        <div class="palette-box">
+          <div class="hd">Command palette</div>
+          <button type="button" data-go="start">New chat <em>fresh conversation</em></button>
+          <button type="button" data-go="notch">Buddy notch <em>Ctrl+Shift+J</em></button>
+          <button type="button" data-go="research">Workers <em>Scout · Hive · Pulse</em></button>
+          <button type="button" data-go="settings">Settings <em>Buddy, ink, modes</em></button>
+        </div>
+      </div>
+    </div>
+    <div class="demo-chips" id="demo-chips">
+      <button type="button" data-scene="start" class="on">Start here</button>
+      <button type="button" data-scene="research">Research the web</button>
+      <button type="button" data-scene="pc">Control my PC</button>
+      <button type="button" data-scene="notch">Notch</button>
+      <button type="button" data-scene="settings">Settings</button>
+    </div>
+  </div>
+  <p class="demo-note" id="demo-note">True-black chat. Pick a chip — same ones that live in the app.</p>
+
+  <div class="marquee reveal" aria-hidden="true">
+    <div class="marquee-track" id="marquee-track">
+      <span><i>●</i>Cited research</span><span><i>●</i>Mozaik swarm</span><span><i>●</i>Command palette</span><span><i>●</i>Allow / Deny</span><span><i>●</i>Cursor buddy</span><span><i>●</i>Notch island</span><span><i>●</i>HiveBox</span><span><i>●</i>PC control</span>
+    </div>
+  </div>
+
+  <div class="stats reveal">
+    <div class="stat"><b><span class="count" data-to="116">0</span></b><span>automated checks passing</span></div>
+    <div class="stat"><b><span class="count" data-to="5">0</span></b><span>agents on one message</span></div>
+    <div class="stat"><b><span class="count" data-to="4">0</span></b><span>ways Buddy acts on your PC</span></div>
+  </div>
+
+  <section class="section reveal" id="features">
+    <div class="eyebrow">Why Hive</div>
+    <h2>One window. Every job.</h2>
+    <p class="lead">Chat is the interface. Research, code, swarm, and the machine itself live inside the conversation.</p>
+    <div class="grid">
+      <div class="card"><h3>Cited web research</h3><p>Live search with Verified Sources cards — domain, title, snippet, and blue links.</p></div>
+      <div class="card"><h3>Mozaik swarm</h3><p>Scout, Hive, and Pulse start together. Critic reviews Hive. Sentry stops fake citations and destructive commands.</p></div>
+      <div class="card"><h3>Command palette</h3><p><kbd>Ctrl</kbd>+<kbd>K</kbd> jumps to a new chat, Buddy, canvas, workers, settings, or the notch.</p></div>
+      <div class="card"><h3>Allow / Deny</h3><p>Operator waits for you before touching the PC. Scout and Hive keep running while you decide.</p></div>
+      <div class="card"><h3>Real PC control</h3><p><code>/open</code> <code>/run</code> <code>/click x y</code> <code>/type</code> — or just ask. Destructive shell is blocked.</p></div>
+      <div class="card"><h3>Voice in, voice out</h3><p>Push-to-talk dictation in the notch and spoken answers when a job finishes.</p></div>
+      <div class="card"><h3>HiveBox</h3><p>A live panel for Scout, Hive, and Pulse jobs — tiny disk, logs, and a handful of safe shell commands.</p></div>
+      <div class="card"><h3>Fast · Auto · Heavy · Max</h3><p>You never pick a model name. The title-bar pill is the mode; Hive chooses.</p></div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="buddy" style="padding-top:32px;">
+    <div class="buddy">
+      <img src="logohive.png" alt="Hive Buddy — orange mascot" width="120" height="120" />
+      <div>
+        <h3>Meet the Buddy. It lives at your cursor.</h3>
+        <p>Enable Hive Buddy at Cursor in Settings. An orange companion trails your mouse — breathing, blinking, watching. It pops an island when it listens, thinks, clicks, or types, and hides the moment you hide Hive. Tray → Ask Hive opens the notch without the full window.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="docs" style="padding-top:32px;">
+    <div class="eyebrow">Manual</div>
+    <h2>Docs.</h2>
+    <p class="lead">Everything you need in five minutes — <a href="docs.html">read the full manual →</a></p>
+    <div class="grid">
+      <a class="card" href="docs.html#get-hive"><h3>Access</h3><p>Invite-only Windows preview. Join the waitlist — we email you when a spot opens.</p></a>
+      <a class="card" href="docs.html#buddy"><h3>Buddy</h3><p>Trails the mouse on every screen and hides whenever Hive hides. Pick its ink: Orange, Ink, Ghost, Cobalt, Amber.</p></a>
+      <a class="card" href="docs.html#notch"><h3>Notch</h3><p><code>Ctrl+Shift+J</code> pops a pill at the top of the screen. Ask, dictate, or run slash commands. <code>Esc</code> dismisses.</p></a>
+      <a class="card" href="docs.html#pc"><h3>PC control</h3><p>The buddy opens apps, runs shell, clicks, and types — after you Allow. Destructive commands are blocked.</p></a>
+      <a class="card" href="docs.html#swarm"><h3>Swarm</h3><p>Scout, Hive, Pulse, Critic, and Sentry on one message. A swarm strip shows when two or more overlap.</p></a>
+      <a class="card" href="docs.html#palette"><h3>Palette</h3><p><code>Ctrl+K</code> — new chat, Buddy, canvas, workers, settings, notch.</p></a>
+    </div>
+  </section>
+
+  <section class="section reveal" id="hivebox" style="padding-top:32px;">
+    <div class="eyebrow">HiveBox</div>
+    <h2>A cloud computer in the rail.</h2>
+    <p class="lead">Scout searches, Hive drafts, Pulse flags risk — three loops at once. Critic ships or sends Hive back.</p>
+    <div class="grid">
+      <div class="card"><h3>Tiny disk</h3><p>Keeps files and logs between jobs.</p></div>
+      <div class="card"><h3>Scout · Hive · Pulse</h3><p>Three concurrent workers you can watch as they run.</p></div>
+      <div class="card"><h3>Audit overlay</h3><p>Every buddy click, type, and shell lands in the overlay log.</p></div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="gallery" style="padding-top:32px;">
+    <div class="eyebrow">Inside the app</div>
+    <h2>The real product.</h2>
+    <p class="lead">Screenshots from the current Hive build.</p>
+    <div class="gallery">
+      <figure>
+        <img src="logohive.png" alt="Hive empty chat with starter chips" />
+        <figcaption>Empty state · Research · Write code · Control my PC</figcaption>
+      </figure>
+      <figure>
+        <img src="logohive.png" alt="Hive search with cited sources and a live swarm strip" />
+        <figcaption>Cited search + swarm strip</figcaption>
+      </figure>
+      <figure>
+        <img src="logohive.png" alt="Hive settings — Buddy at Cursor" />
+        <figcaption>Settings · Buddy at Cursor</figcaption>
+      </figure>
+      <figure>
+        <img src="logohive.png" alt="Hive Buddy notch pill" />
+        <figcaption>Buddy notch · Ctrl+Shift+J</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dl reveal" id="invite">
+    <span class="ver">v0.0.1.5 · Windows</span>
+    <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Take Hive home.</h2>
+    <p class="lead" style="color:var(--dim);margin:14px auto 28px;max-width:520px;line-height:1.65;">Newest installer: Hive 0.0.1.5 for Windows 10 / 11. GLM 5.3 + Nemotron on Hive Free, 1M token meter, owner Admin.</p>
+    <div class="cta">
+      <a class="btn" href="#waitlist">Download v0.0.1.5</a>
+      <a class="btn ghost" href="#waitlist">Join waitlist</a>
+    </div>
+  </section>
+
+  <section class="section reveal" id="soon" style="padding-top:32px;">
+    <div class="eyebrow">Roadmap</div>
+    <h2>Coming soon.</h2>
+    <div class="grid">
+      <div class="card"><h3>Voice calling</h3><p>Full duplex voice calls with Hive and your bots. Today: push-to-talk dictation and spoken answers.</p></div>
+      <div class="card"><h3>Buddy everywhere</h3><p>The cursor buddy on the web: the same orange companion, the same notch, in the browser.</p></div>
+      <div class="card"><h3>Mobile</h3><p>Hive on the go — chat, swarm, and buddy status from your pocket.</p></div>
+    </div>
+  </section>
+
+  <section class="dl reveal" id="waitlist" style="padding:64px 0 32px;">
+    <span class="ver">Waitlist</span>
+    <h2 style="font-size:clamp(28px,4.5vw,44px);letter-spacing:-.02em;">Get Hive first.</h2>
+    <p class="lead" style="color:var(--dim);margin:14px auto 18px;max-width:520px;line-height:1.65;">Create an account, then choose whether to join the waitlist. We’ll email you if a spot opens.</p>
+    <p class="wait-pill" id="waitlist-count-pill" style="margin:0 auto 22px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--orange);display:inline-block;"></span><span id="waitlist-count-label">Loading the queue…</span></p>
+    <form id="waitlist-form" class="wait-form">
+      <input id="waitlist-email" type="email" required placeholder="you@example.com" autocomplete="email" />
+      <button class="btn" type="submit">Join waitlist</button>
+    </form>
+    <p id="waitlist-done" style="display:none;margin-top:16px;color:var(--orange);font-size:14px;">✓ You are on the list. Watch your inbox.</p>
+  </section>
+
+  <section class="section reveal" id="team" style="padding-top:32px;">
+    <h2>Built by Apis.</h2>
+    <p class="lead">Hive is designed, engineered, and shipped by <strong style="color:var(--text);">Apis</strong> — one crew, end to end: desktop app, buddy engine, HiveBox, and this page.</p>
+  </section>
+
+  <footer>
+    <div class="foot-grid">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--text);margin-bottom:10px;"><img src="logohive.png" alt="" width="22" height="22" style="border-radius:6px;" /> Hive</div>
+        <div style="font-size:13px;max-width:260px;">The desktop AI that does things. By <strong style="color:var(--text);">Apis</strong>.</div>
+        <div class="status-dot"><i></i>All systems operational</div>
+      </div>
+      <div>
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#buddy">Buddy</a>
+        <a href="#waitlist">Download Windows</a>
+        <a href="#waitlist">Waitlist</a>
+      </div>
+      <div>
+        <h4>Community</h4>
+        <a href="https://discord.gg/jN3MxRqvsV" target="_blank" rel="noopener noreferrer">Join Discord</a>
+        <a href="https://discord.gg/jN3MxRqvsV" target="_blank" rel="noopener noreferrer">Updates & roadmap</a>
+        <a href="docs.html">Docs</a>
+      </div>
+      <div>
+        <h4>Team</h4>
+        <a href="#team">About Apis</a>
+        <a href="#waitlist">Contact via waitlist</a>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:22px;color:var(--dim);font-size:13px;flex-wrap:wrap;gap:12px;">
+      <span>Black theme · Local-first · Made for doers.</span>
+      <span>v0.0.1.5</span>
+    </div>
+  </footer>
+</div>
+<script>
+(function () {
+  var scenes = {
+    start: { src: 'logohive.png', alt: 'Hive empty workspace', note: 'True-black chat. Pick a chip — same ones that live in the app.', swarm: false, allow: false },
+    research: { src: 'logohive.png', alt: 'Hive cited search with swarm strip', note: 'Scout, Hive, and Pulse start together. Sources land as cards.', swarm: true, allow: false },
+    pc: { src: 'logohive.png', alt: 'Hive opening Notepad', note: 'Operator waits. You Allow or Deny before anything touches the machine.', swarm: false, allow: true },
+    notch: { src: 'logohive.png', alt: 'Hive Buddy notch', note: 'Ctrl+Shift+J anywhere. The window never has to open.', swarm: false, allow: false },
+    settings: { src: 'logohive.png', alt: 'Hive settings', note: 'Buddy at Cursor, ink, Fast / Auto / Heavy / Max.', swarm: false, allow: false }
+  };
+  var img = document.getElementById('demo-img');
+  var note = document.getElementById('demo-note');
+  var swarm = document.getElementById('demo-swarm');
+  var allow = document.getElementById('demo-allow');
+  var ok = document.getElementById('demo-ok');
+  var pal = document.getElementById('demo-pal');
+  var chips = document.querySelectorAll('#demo-chips button');
+  var allowed = false;
+  function show(id) {
+    var s = scenes[id]; if (!s || !img) return;
+    img.src = s.src; img.alt = s.alt;
+    if (note) note.textContent = s.note;
+    if (swarm) swarm.hidden = !s.swarm;
+    if (allow) allow.hidden = !(s.allow && !allowed);
+    if (ok) ok.hidden = !(s.allow && allowed);
+    if (pal) pal.hidden = true;
+    chips.forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-scene') === id); });
+    window._demoScene = id;
+  }
+  chips.forEach(function (b) {
+    b.addEventListener('click', function () {
+      allowed = false;
+      show(b.getAttribute('data-scene'));
+    });
+  });
+  var yes = document.getElementById('demo-allow-yes');
+  var no = document.getElementById('demo-allow-no');
+  if (yes) yes.addEventListener('click', function () { allowed = true; show('pc'); });
+  if (no) no.addEventListener('click', function () { allowed = false; show('start'); });
+  var k = document.getElementById('demo-k');
+  if (k) k.addEventListener('click', function () { if (pal) pal.hidden = !pal.hidden; });
+  if (pal) pal.addEventListener('click', function (e) {
+    var go = e.target && e.target.getAttribute && e.target.getAttribute('data-go');
+    if (go) { allowed = false; show(go); }
+    else if (e.target === pal) pal.hidden = true;
+  });
+  show('start');
+})();
+</script>
+
+<script>
+  /* Hive accounts (Supabase). Setup: README.md — paste URL + anon key below. */
+  var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
+  var HIVE_SITE_URL = 'https://hivetools.pro/hive/';
+    var sb = null;
+  try {
+    if (window.supabase && SUPABASE_URL.indexOf('PASTE-YOUR') !== 0) {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce'
+        }
+      });
+    }
+  } catch (e) { sb = null; }
+
+  function isDesktopHandoff() {
+    return /(?:\?|&)desktop=1(?:&|$)/.test(location.search || '');
+  }
+  function handoffToDesktop(session) {
+    if (!isDesktopHandoff() || !session || !session.access_token || !session.refresh_token) return false;
+    var banner = document.getElementById('desktop-handoff');
+    if (banner) banner.style.display = 'flex';
+    var url = 'hive://auth?access_token=' + encodeURIComponent(session.access_token) + '&refresh_token=' + encodeURIComponent(session.refresh_token);
+    window.location.href = url;
+    return true;
+  }
+
+
+  window._hiveWait = { total: 0, waiting: 0 };
+  async function loadWaitlistStats() {
+    var label = document.getElementById('waitlist-count-label');
+    var totalEl = document.getElementById('pf-wait-total');
+    try {
+      if (!sb) throw new Error('no sb');
+      var r = await sb.rpc('waitlist_stats');
+      var d = r.data || {};
+      window._hiveWait = { total: Number(d.total || 0), waiting: Number(d.waiting || 0) };
+    } catch (e) {
+      window._hiveWait = window._hiveWait || { total: 0, waiting: 0 };
+    }
+    var w = window._hiveWait.waiting;
+    if (label) {
+      if (w === 1) label.textContent = '1 person is on the waitlist';
+      else label.textContent = w + ' people are on the waitlist';
+    }
+    if (totalEl && document.getElementById('profile-panel') && document.getElementById('profile-panel').style.display === 'flex') {
+      totalEl.textContent = String(w);
+    }
+  }
+
+  (function bindWaitlistForm() {
+    var form = document.getElementById('waitlist-form');
+    var done = document.getElementById('waitlist-done');
+    var input = document.getElementById('waitlist-email');
+    if (!form) return;
+    form.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var email = (input && input.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { if (input) input.focus(); return; }
+      if (done) { done.style.display = 'block'; done.textContent = 'Joining…'; }
+      try {
+        if (!sb) throw new Error('Could not reach the waitlist.');
+        var sess = await sb.auth.getSession();
+        var user = sess.data && sess.data.session && sess.data.session.user;
+        var add = await sb.rpc('add_waitlist_email', { addr: email });
+        if (add.error) throw add.error;
+        if (user) {
+          var j = await sb.rpc('join_waitlist');
+          if (j.error) throw j.error;
+        }
+        try {
+          var saved = JSON.parse(localStorage.getItem('hive_waitlist') || '[]');
+          saved.push(email);
+          localStorage.setItem('hive_waitlist', JSON.stringify(saved));
+        } catch (e) {}
+        if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
+        await loadWaitlistStats();
+      } catch (e) {
+        if (done) { done.style.display = 'block'; done.textContent = (e && e.message) || 'Could not join.'; }
+      }
+    });
+  })();
+
+  var STATUS_STYLE = {
+    none: { label: 'Member', color: '#71767b', bg: 'rgba(113,118,123,.14)' },
+    pending: { label: 'On the waitlist', color: '#F2C14E', bg: 'rgba(242,193,78,.12)' },
+    approved: { label: 'Approved', color: '#10B981', bg: 'rgba(16,185,129,.12)' },
+    denied: { label: 'Declined', color: '#F04438', bg: 'rgba(240,68,56,.12)' }
+  };
+
+  function sbProfileChip(user, profile) {
+    var slot = document.getElementById('s-login');
+    if (!slot) return;
+    slot.innerHTML = '';
+    var wrap = document.createElement('button');
+    wrap.type = 'button';
+    wrap.title = 'Open profile settings';
+    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 4px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;';
+    var av = document.createElement('span');
+    var nm = (profile && profile.display_name) || (user.email || '?');
+    av.textContent = nm.charAt(0).toUpperCase();
+    av.style.cssText = 'width:24px;height:24px;border-radius:50%;background:var(--orange);color:#000;font-weight:700;font-size:12px;display:inline-flex;align-items:center;justify-content:center;';
+    wrap.appendChild(av);
+    var t = document.createElement('span'); t.textContent = nm.split(' ')[0];
+    wrap.appendChild(t);
+    wrap.onclick = function () { openProfile(user, profile); };
+    slot.appendChild(wrap);
+  }
+
+  function sbSigninButton() {
+    var slot = document.getElementById('s-login');
+    if (!slot) return;
+    slot.innerHTML = '';
+    var b = document.createElement('button');
+    b.textContent = 'Sign in'; b.type = 'button'; b.className = 'btn ghost';
+    b.style.fontSize = '13px'; b.style.padding = '8px 16px';
+    b.onclick = openAuth;
+    slot.appendChild(b);
+  }
+
+  function sbMsg(text, isErr) {
+    var el = document.getElementById('auth-msg');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = isErr ? '#F04438' : 'var(--dim)';
+    el.textContent = text;
+  }
+
+  function openAuth() {
+    var m = document.getElementById('auth-modal');
+    if (m) { m.style.display = 'flex'; switchAuthTab('in'); }
+  }
+  function closeAuth() {
+    var m = document.getElementById('auth-modal');
+    if (m) m.style.display = 'none';
+  }
+  function switchAuthTab(which) {
+    var tin = document.getElementById('tab-in'), tup = document.getElementById('tab-up');
+    var fin = document.getElementById('form-in'), fup = document.getElementById('form-up');
+    var isIn = which === 'in';
+    if (tin) { tin.style.color = isIn ? 'var(--text)' : 'var(--dim)'; tin.style.borderColor = isIn ? 'var(--orange)' : 'transparent'; }
+    if (tup) { tup.style.color = !isIn ? 'var(--text)' : 'var(--dim)'; tup.style.borderColor = !isIn ? 'var(--orange)' : 'transparent'; }
+    if (fin) fin.style.display = isIn ? 'flex' : 'none';
+    if (fup) fup.style.display = !isIn ? 'flex' : 'none';
+    sbMsg('', false);
+  }
+
+  async function ensureProfile(user, name) {
+    var email = user.email || '';
+    async function read() {
+      var res = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (res.error && String(res.error.code || '') !== 'PGRST116') throw res.error;
+      return res.data || null;
+    }
+    var existing = await read();
+    if (existing) return existing;
+    var ins = await sb.from('profiles').insert({
+      id: user.id, email: email,
+      display_name: name || email.split('@')[0] || 'Hive member',
+      status: 'none'
+    }).select().single();
+    if (ins.error) {
+      existing = await read();
+      if (existing) return existing;
+      throw ins.error;
+    }
+    return ins.data;
+  }
+
+  async function refreshSession() {
+    if (!sb) { sbSigninButton(); return; }
+    try {
+      var s = await sb.auth.getSession();
+      var session = s.data && s.data.session;
+      var user = session && session.user;
+      if (!user) {
+        sbSigninButton();
+        if (isDesktopHandoff() && typeof openAuth === 'function') openAuth();
+        return;
+      }
+      var profile = await ensureProfile(user, '');
+      sbProfileChip(user, profile);
+      if (handoffToDesktop(session)) return;
+    } catch (e) { sbSigninButton(); }
+  }
+
+  async function doSignin(ev) {
+    ev.preventDefault();
+    if (!sb) { sbMsg('Site owner: add Supabase keys first (README.md).', true); return; }
+    var email = document.getElementById('auth-in-email').value.trim();
+    var pass = document.getElementById('auth-in-pass').value;
+    try {
+      var r = await sb.auth.signInWithPassword({ email: email, password: pass });
+      if (r.error) throw r.error;
+      var profile = { display_name: email.split('@')[0], status: 'none', email: email };
+      try { profile = await ensureProfile(r.data.user, '') || profile; } catch (pe) {}
+      sbProfileChip(r.data.user, profile);
+      if (handoffToDesktop(r.data.session)) return;
+      closeAuth();
+    } catch (e) { sbMsg(e.message || 'Sign in failed.', true); }
+  }
+
+  async function doSignup(ev) {
+    ev.preventDefault();
+    if (!sb) { sbMsg('Site owner: add Supabase keys first (README.md).', true); return; }
+    var name = document.getElementById('auth-up-name').value.trim();
+    var email = document.getElementById('auth-up-email').value.trim();
+    var pass = document.getElementById('auth-up-pass').value;
+    try {
+      var r = await sb.auth.signUp({
+        email: email,
+        password: pass,
+        options: {
+          data: { display_name: name || undefined },
+          emailRedirectTo: HIVE_SITE_URL
+        }
+      });
+      if (r.error) throw r.error;
+      if (!r.data.session) {
+        sbMsg('Account created — check your inbox to confirm, then sign in.', false);
+        switchAuthTab('in');
+        return;
+      }
+      var profile = await ensureProfile(r.data.user, name);
+      await loadWaitlistStats();
+      sbProfileChip(r.data.user, profile);
+      if (handoffToDesktop(r.data.session)) return;
+      closeAuth();
+      openWaitlistInvite(r.data.user, profile);
+    } catch (e) { sbMsg(e.message || 'Sign up failed.', true); }
+  }
+
+
+  function openWaitlistInvite(user, profile) {
+    window._hiveInviteUser = user;
+    window._hiveInviteProfile = profile;
+    var el = document.getElementById('waitlist-invite');
+    if (!el) return;
+    if (profile && (profile.status === 'pending' || profile.status === 'approved')) {
+      openProfile(user, profile);
+      return;
+    }
+    el.style.display = 'flex';
+  }
+  function closeWaitlistInvite() {
+    var el = document.getElementById('waitlist-invite');
+    if (el) el.style.display = 'none';
+  }
+  async function joinWaitlist() {
+    if (!sb) return;
+    var r = await sb.rpc('join_waitlist');
+    if (r.error) throw r.error;
+    var profile = r.data || {};
+    await loadWaitlistStats();
+    var s = await sb.auth.getUser();
+    var user = s.data && s.data.user;
+    if (user) {
+      sbProfileChip(user, profile);
+      closeWaitlistInvite();
+      openProfile(user, profile);
+    }
+    var done = document.getElementById('waitlist-done');
+    if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
+  }
+  async function acceptWaitlistInvite() {
+    try { await joinWaitlist(); }
+    catch (e) {
+      var msg = document.getElementById('invite-msg');
+      if (msg) { msg.style.display = 'block'; msg.textContent = e.message || 'Could not join.'; }
+    }
+  }
+  function skipWaitlistInvite() {
+    closeWaitlistInvite();
+    var user = window._hiveInviteUser;
+    var profile = window._hiveInviteProfile;
+    if (user) openProfile(user, profile);
+  }
+
+  async function openProfile(user, profile) {
+    var p = document.getElementById('profile-panel');
+    if (!p) return;
+    try {
+      var fresh = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (fresh.data) profile = fresh.data;
+    } catch (e) {}
+    profile = profile || { display_name: user.email, status: 'pending', customer_number: null, created_at: null, notify: true, email: user.email };
+    document.getElementById('pf-name').textContent = profile.display_name || user.email || 'Member';
+    document.getElementById('pf-email').textContent = profile.email || user.email || '';
+    document.getElementById('pf-edit-name').value = profile.display_name || '';
+    var st = STATUS_STYLE[profile.status] || STATUS_STYLE.pending;
+    var badge = document.getElementById('pf-status');
+    badge.textContent = st.label;
+    badge.style.color = st.color; badge.style.background = st.bg;
+    var totalEl = document.getElementById('pf-wait-total');
+    if (totalEl) totalEl.textContent = (window._hiveWait && window._hiveWait.waiting != null) ? String(window._hiveWait.waiting) : '—';
+    var since = document.getElementById('pf-since');
+    if (profile.status === 'pending') {
+      since.textContent = profile.waitlist_at || profile.created_at
+        ? ('On the waitlist since ' + new Date(profile.waitlist_at || profile.created_at).toLocaleDateString())
+        : 'You are on the waitlist.';
+    } else if (profile.status === 'approved') {
+      since.textContent = 'Approved — watch your inbox for the drop.';
+    } else if (profile.status === 'denied') {
+      since.textContent = profile.review_note ? ('Declined: ' + profile.review_note) : 'Waitlist request was declined.';
+    } else {
+      since.textContent = 'Account created. You are not on the waitlist yet.';
+    }
+    var joinBtn = document.getElementById('pf-join-wait');
+    if (joinBtn) joinBtn.style.display = (profile.status === 'none' || profile.status === 'denied') ? 'block' : 'none';
+    var adminLink = document.getElementById('pf-admin');
+    if (adminLink) adminLink.style.display = profile.is_admin ? 'block' : 'none';
+    document.getElementById('pf-notify').checked = profile.notify !== false;
+    p.dataset.uid = user.id;
+    p.style.display = 'flex';
+  }
+  function closeProfile() {
+    var p = document.getElementById('profile-panel');
+    if (p) p.style.display = 'none';
+  }
+  async function saveProfile() {
+    var p = document.getElementById('profile-panel');
+    if (!p || !sb) return;
+    var uid = p.dataset.uid;
+    var name = document.getElementById('pf-edit-name').value.trim();
+    var notify = document.getElementById('pf-notify').checked;
+    try {
+      var r = await sb.from('profiles').update({ display_name: name || 'Hive member', notify: notify }).eq('id', uid).select().single();
+      if (r.error) throw r.error;
+      document.getElementById('pf-name').textContent = r.data.display_name;
+      var s = await sb.auth.getUser();
+      sbProfileChip(s.data.user, r.data);
+      sbMsg2('Saved ✓');
+    } catch (e) { sbMsg2(e.message || 'Save failed.', true); }
+  }
+  function sbMsg2(text, isErr) {
+    var el = document.getElementById('pf-msg');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color = isErr ? '#F04438' : '#10B981';
+    el.textContent = text;
+    setTimeout(function () { el.style.display = 'none'; }, 2400);
+  }
+  async function signOut() {
+    try { if (sb) await sb.auth.signOut(); } catch (e) {}
+    try { localStorage.removeItem('hive_google_user'); } catch (e) {}
+    closeProfile();
+    sbSigninButton();
+  }
+
+  refreshSession();
+  loadWaitlistStats();
+</script>
+<!-- Auth modal -->
+
+<div id="waitlist-invite" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)skipWaitlistInvite()">
+  <div class="modal-card" style="width:min(400px,92vw);background:var(--surface-1);border:1px solid var(--line);border-radius:20px;padding:28px 26px 24px;box-shadow:0 24px 80px rgba(0,0,0,.55);">
+    <div style="width:44px;height:44px;border-radius:12px;background:rgba(240,138,36,.14);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:22px;">✦</div>
+    <h3 style="font-size:22px;letter-spacing:-.02em;margin-bottom:8px;">Join the waitlist?</h3>
+    <p style="color:var(--dim);font-size:14.5px;line-height:1.6;margin-bottom:22px;">Your account is ready. Want a spot on the Hive waitlist? You can join later from your profile if you skip this.</p>
+    <p id="invite-msg" style="display:none;color:#F04438;font-size:13px;margin:0 0 12px;"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="button" class="btn" onclick="acceptWaitlistInvite()" style="flex:1;justify-content:center;">Yes, join waitlist</button>
+      <button type="button" class="btn ghost" onclick="skipWaitlistInvite()" style="flex:1;justify-content:center;">Not now</button>
+    </div>
+  </div>
+</div>
+
+<div id="desktop-handoff" style="display:none;position:fixed;inset:0;z-index:120;background:#050608;align-items:center;justify-content:center;padding:24px;flex-direction:column;">
+  <style>
+    @keyframes hive-spin { to { transform: rotate(360deg); } }
+    @keyframes hive-pulse { 0%,100% { opacity:.4; transform:scale(.92);} 50% { opacity:1; transform:scale(1);} }
+    @keyframes hive-in { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:none;} }
+  </style>
+  <div style="animation:hive-in .6s ease both;text-align:center;">
+    <div style="width:88px;height:88px;margin:0 auto 18px;position:relative;">
+      <div style="position:absolute;inset:0;border-radius:22px;border:2px solid rgba(242,193,78,.25);animation:hive-pulse 1.6s ease infinite;"></div>
+      <svg viewBox="0 0 32 32" width="88" height="88" style="animation:hive-spin 4s linear infinite;color:#F2C14E;">
+        <path d="M16 3.4 28.2 10.3v11.4L16 28.6 3.8 21.7V10.3L16 3.4Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M16 10.6 22.4 14.2v7.2L16 24.9 9.6 21.4v-7.2L16 10.6Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <p style="font-size:22px;font-weight:750;margin:0 0 8px;letter-spacing:-.03em;">You're in.</p>
+    <p style="font-size:14px;color:#9ca3af;line-height:1.55;margin:0 0 6px;">Opening the Hive desktop app…</p>
+    <p style="font-size:12px;color:#71767b;margin:0;">Allow the browser to open <code>hive://</code></p>
+  </div>
+</div>
+<div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeAuth()">
+  <div class="modal-card" style="width:min(380px,92vw);background:var(--surface-1);border:1px solid var(--line);border-radius:18px;padding:28px;">
+    <div style="display:flex;gap:18px;margin-bottom:20px;font-size:14px;font-weight:600;">
+      <button id="tab-in" type="button" onclick="switchAuthTab('in')" style="background:none;border:none;border-bottom:2px solid var(--orange);padding-bottom:6px;color:var(--text);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;">Sign in</button>
+      <button id="tab-up" type="button" onclick="switchAuthTab('up')" style="background:none;border:none;border-bottom:2px solid transparent;padding-bottom:6px;color:var(--dim);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;">Create account</button>
+      <button type="button" onclick="closeAuth()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;">✕</button>
+    </div>
+    <form id="form-in" onsubmit="doSignin(event)" style="display:flex;flex-direction:column;gap:10px;">
+      <input id="auth-in-email" type="email" required placeholder="Email" style="background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;" />
+      <input id="auth-in-pass" type="password" required placeholder="Password" style="background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;" />
+      <button class="btn" type="submit" style="justify-content:center;">Sign in</button>
+    </form>
+    <form id="form-up" onsubmit="doSignup(event)" style="display:none;flex-direction:column;gap:10px;">
+      <input id="auth-up-name" type="text" placeholder="Display name" style="background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;" />
+      <input id="auth-up-email" type="email" required placeholder="Email" style="background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;" />
+      <input id="auth-up-pass" type="password" required minlength="6" placeholder="Password (6+ chars)" style="background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;" />
+      <button class="btn" type="submit" style="justify-content:center;">Create account</button>
+    </form>
+    <p id="auth-msg" style="display:none;margin:14px 0 0;font-size:13px;line-height:1.5;"></p>
+  </div>
+</div>
+
+<!-- Profile panel -->
+<div id="profile-panel" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);justify-content:flex-end;" onclick="if(event.target===this)closeProfile()">
+  <div class="drawer" style="width:min(340px,90vw);height:100%;background:var(--surface-1);border-left:1px solid var(--line);padding:28px 24px;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <span style="font-size:15px;font-weight:700;">Profile settings</span>
+      <button type="button" onclick="closeProfile()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;">✕</button>
+    </div>
+    <div style="font-size:17px;font-weight:700;" id="pf-name">Member</div>
+    <div style="font-size:13px;color:var(--dim);margin:2px 0 14px;" id="pf-email"></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:18px;">
+      <span id="pf-status" style="font-size:11.5px;font-weight:700;padding:3px 12px;border-radius:999px;">Pending review</span>
+    </div>
+    <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px;text-align:center;">
+      <div id="pf-wait-total" style="font-size:34px;font-weight:700;color:var(--orange);">—</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:2px;">people on the waitlist</div>
+      <div id="pf-since" style="font-size:12px;color:var(--dim);margin-top:6px;"></div>
+    </div>
+    <label style="font-size:12.5px;color:var(--dim);display:block;margin-bottom:6px;">Display name</label>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <input id="pf-edit-name" type="text" style="flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13.5px;outline:none;font-family:inherit;min-width:0;" />
+      <button type="button" onclick="saveProfile()" style="background:var(--orange);border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;color:#000;cursor:pointer;font-family:inherit;">Save</button>
+    </div>
+    <label style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px;margin-bottom:20px;cursor:pointer;">
+      Email updates about Hive
+      <input id="pf-notify" type="checkbox" checked style="accent-color:var(--orange);width:17px;height:17px;cursor:pointer;" />
+    </label>
+    <p id="pf-msg" style="display:none;font-size:13px;margin:0 0 12px;"></p>
+    <button id="pf-join-wait" type="button" onclick="joinWaitlist().catch(function(e){sbMsg2(e.message||'Could not join.',true)})" style="display:none;width:100%;background:var(--orange);border:none;border-radius:10px;padding:10px;font-size:13.5px;font-weight:600;color:#000;cursor:pointer;font-family:inherit;margin-bottom:10px;">Join the waitlist</button>
+    <a id="pf-admin" href="admin.html" style="display:none;width:100%;text-align:center;background:transparent;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13.5px;color:var(--text);margin-bottom:10px;">Review waitlist</a>
+    <button type="button" onclick="signOut()" style="width:100%;background:transparent;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13.5px;color:var(--dim);cursor:pointer;font-family:inherit;">Sign out</button>
+  </div>
+</div>
+
+<script>
+  /* scroll-reveal with stagger + counters + spy + mobile menu */
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    // stagger cards inside each grid + buddy children of sections
+    document.querySelectorAll('.grid').forEach(function (grid) {
+      Array.prototype.forEach.call(grid.children, function (child, i) {
+        child.classList.add('reveal');
+        child.style.transitionDelay = ((i % 3) * 90) + 'ms';
+      });
+    });
+    // marquee: duplicate content for a seamless -50% loop
+    var track = document.getElementById('marquee-track');
+    if (track) track.innerHTML += track.innerHTML;
+    // animated counters (instant when reduced motion is preferred)
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function countUp(el) {
+      var to = parseInt(el.getAttribute('data-to') || '0', 10);
+      if (reduceMotion) { el.textContent = String(to); return; }
+      var t0 = null, dur = 1400;
+      function step(t) {
+        if (!t0) t0 = t;
+        var k = Math.min(1, (t - t0) / dur);
+        el.textContent = String(Math.round(to * (1 - Math.pow(1 - k, 3))));
+        if (k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    // nav spy
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]'));
+    var spyMap = {};
+    navLinks.forEach(function (a) { spyMap[a.getAttribute('href').slice(1)] = a; });
+    // mobile menu
+    var mb = document.getElementById('m-menu-btn');
+    var mm = document.getElementById('m-menu');
+    if (mb && mm) {
+      mb.addEventListener('click', function () {
+        var open = mm.classList.toggle('open');
+        mb.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      mm.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') {
+          mm.classList.remove('open');
+          mb.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    var all = document.querySelectorAll('.reveal');
+    var counted = false;
+    if (!('IntersectionObserver' in window)) {
+      all.forEach(function (el) { el.classList.add('in'); });
+      document.querySelectorAll('.count').forEach(function (el) {
+        el.textContent = el.getAttribute('data-to');
+      });
+      return;
+    }
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          navLinks.forEach(function (a) { a.style.color = ''; });
+          var a = spyMap[en.target.id];
+          if (a) a.style.color = 'var(--text)';
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    Object.keys(spyMap).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) spy.observe(el);
+    });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+          if (!counted && en.target.querySelector && en.target.querySelector('.count')) {
+            counted = true;
+            document.querySelectorAll('.count').forEach(countUp);
+          }
+        }
+      });
+    }, { threshold: 0.12 });
+    all.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+<script>
+  /* mascot gaze: eyes follow the cursor with eased tracking */
+  (function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var g = document.getElementById('site-eyes');
+    if (!g) return;
+    var tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+    function loop() {
+      raf = 0;
+      x += (tx - x) * 0.16;
+      y += (ty - y) * 0.16;
+      if (Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05) {
+        g.setAttribute('transform', 'translate(' + x.toFixed(2) + ' ' + y.toFixed(2) + ')');
+        raf = requestAnimationFrame(loop);
+      } else {
+        g.setAttribute('transform', 'translate(' + tx.toFixed(2) + ' ' + ty.toFixed(2) + ')');
+      }
+    }
+    function kick() { if (!raf) raf = requestAnimationFrame(loop); }
+    window.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return;
+      var hw = Math.max(1, window.innerWidth / 2);
+      var hh = Math.max(1, window.innerHeight / 2);
+      var nx = Math.max(-1, Math.min(1, (e.clientX - hw) / hw));
+      var ny = Math.max(-1, Math.min(1, (e.clientY - hh) / hh));
+      tx = nx * 26;
+      ty = ny * 20;
+      kick();
+    }, { passive: true });
+    document.addEventListener('pointerleave', function () { tx = 0; ty = 0; kick(); });
+  })();
+</script>
+
+</body>
+</html>
+
