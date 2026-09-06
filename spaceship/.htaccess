@@ -1,5 +1,14 @@
-DirectoryIndex index.html
-Options -Indexes
 RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+DirectoryIndex index.html
+Options -Indexes
+
+# /download and /download/ work even if the download/ folder was never uploaded
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^download/?$ download.html [L]
+
+<IfModule mod_headers.c>
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
