@@ -3,7 +3,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   display_name text,
-  status text not null default 'pending'
+  status text not null default 'approved'
     check (status in ('pending', 'approved', 'denied')),
   customer_number serial unique,
   notify boolean not null default true,
@@ -37,7 +37,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1), 'Hive member'),
-    'pending'
+    'approved'
   )
   on conflict (id) do update
     set email = excluded.email;

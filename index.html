@@ -644,11 +644,17 @@
     var email = user.email || '';
     var res = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     if (res.error) throw res.error;
-    if (res.data) return res.data;
+    if (res.data) {
+      if (res.data.status !== 'approved') {
+        var up = await sb.from('profiles').update({ status: 'approved' }).eq('id', user.id).select().single();
+        if (!up.error && up.data) return up.data;
+      }
+      return res.data;
+    }
     var ins = await sb.from('profiles').insert({
       id: user.id, email: email,
       display_name: name || email.split('@')[0] || 'Hive member',
-      status: 'none'
+      status: 'approved'
     }).select().single();
     if (ins.error) throw ins.error;
     return ins.data;
@@ -705,7 +711,6 @@
       sbProfileChip(r.data.user, profile);
       if (handoffToDesktop(r.data.session)) return;
       closeAuth();
-      openWaitlistInvite(r.data.user, profile);
     } catch (e) { sbMsg(e.message || 'Sign up failed.', true); }
   }
 
