@@ -514,45 +514,6 @@
 </script>
 
 <script>
-  (function () {
-    var form = document.getElementById('waitlist-form');
-    var done = document.getElementById('waitlist-done');
-    var input = document.getElementById('waitlist-email');
-    try {
-      var saved = JSON.parse(localStorage.getItem('hive_waitlist') || '[]');
-      if (saved.length && input) { input.value = saved[saved.length - 1]; if (done) done.style.display = 'block'; }
-    } catch (e) {}
-    if (form) form.addEventListener('submit', async function (ev) {
-      ev.preventDefault();
-      var email = (input.value || '').trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { input.focus(); return; }
-      try {
-        if (sb) {
-          var sess = await sb.auth.getSession();
-          var user = sess.data && sess.data.session && sess.data.session.user;
-          if (user) {
-            await joinWaitlist();
-            if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
-            return;
-          }
-          var add = await sb.rpc('add_waitlist_email', { addr: email });
-          if (add.error) throw add.error;
-          try {
-            var saved = JSON.parse(localStorage.getItem('hive_waitlist') || '[]');
-            saved.push(email);
-            localStorage.setItem('hive_waitlist', JSON.stringify(saved));
-          } catch (e) {}
-          if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
-          await loadWaitlistStats();
-          return;
-        }
-      } catch (e) {
-        if (done) { done.style.display = 'block'; done.textContent = (e && e.message) || 'Could not join.'; }
-      }
-    });
-  })();
-</script>
-<script>
   /* Hive accounts (Supabase). Setup: README.md — paste URL + anon key below. */
   var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
@@ -597,6 +558,39 @@
       totalEl.textContent = String(w);
     }
   }
+
+  (function bindWaitlistForm() {
+    var form = document.getElementById('waitlist-form');
+    var done = document.getElementById('waitlist-done');
+    var input = document.getElementById('waitlist-email');
+    if (!form) return;
+    form.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var email = (input && input.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { if (input) input.focus(); return; }
+      if (done) { done.style.display = 'block'; done.textContent = 'Joining…'; }
+      try {
+        if (!sb) throw new Error('Could not reach the waitlist.');
+        var sess = await sb.auth.getSession();
+        var user = sess.data && sess.data.session && sess.data.session.user;
+        var add = await sb.rpc('add_waitlist_email', { addr: email });
+        if (add.error) throw add.error;
+        if (user) {
+          var j = await sb.rpc('join_waitlist');
+          if (j.error) throw j.error;
+        }
+        try {
+          var saved = JSON.parse(localStorage.getItem('hive_waitlist') || '[]');
+          saved.push(email);
+          localStorage.setItem('hive_waitlist', JSON.stringify(saved));
+        } catch (e) {}
+        if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
+        await loadWaitlistStats();
+      } catch (e) {
+        if (done) { done.style.display = 'block'; done.textContent = (e && e.message) || 'Could not join.'; }
+      }
+    });
+  })();
 
   var STATUS_STYLE = {
     none: { label: 'Member', color: '#71767b', bg: 'rgba(113,118,123,.14)' },

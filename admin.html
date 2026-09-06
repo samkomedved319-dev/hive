@@ -164,9 +164,16 @@
     if (!file) return;
     var filename = file.name || ('HiveSetup-' + version + '.exe');
     var path = version + '/' + filename;
-    document.getElementById('rel-msg').textContent = 'Uploading…';
-    var up = await sb.storage.from('installers').upload(path, file, { upsert: true, contentType: 'application/octet-stream' });
-    if (up.error) { showSetup(up.error.message); return; }
+    document.getElementById('rel-msg').textContent = 'Uploading ' + filename + ' (' + Math.round(file.size / 1048576) + ' MB)…';
+    var up = await sb.storage.from('installers').upload(path, file, { upsert: true });
+    if (up.error) {
+      var retry = await sb.storage.from('installers').remove([path]);
+      up = await sb.storage.from('installers').upload(path, file, { upsert: true });
+    }
+    if (up.error) {
+      document.getElementById('rel-msg').textContent = 'Upload failed: ' + up.error.message + (up.error.message && up.error.message.indexOf('admin') >= 0 ? ' Sign in as the admin account on the homepage first.' : '');
+      return;
+    }
     var pub = sb.storage.from('installers').getPublicUrl(path);
     await sb.from('releases').update({ is_latest: false }).eq('is_latest', true);
     var ins = await sb.from('releases').insert({
@@ -179,7 +186,7 @@
       file_size: file.size,
       is_latest: true
     });
-    if (ins.error) { showSetup(ins.error.message); return; }
+    if (ins.error) { document.getElementById('rel-msg').textContent = 'Saved file but could not list it: ' + ins.error.message; return; }
     document.getElementById('rel-msg').textContent = 'Published v' + version + '.';
     e.target.reset();
     await loadReleases();
