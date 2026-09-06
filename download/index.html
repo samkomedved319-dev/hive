@@ -4,9 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Meet Hive</title>
+<title>Download Hive 0.0.1.6</title>
 <link rel="icon" type="image/png" href="../logohive.png" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { min-height:100%; background:#000; color:#fff; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
@@ -31,7 +30,6 @@
     height:48px; padding:0 22px; border-radius:999px; font: 600 15px/1 inherit;
     text-decoration:none; border:1px solid transparent; cursor:pointer; background:#fff; color:#000;
   }
-  .btn:disabled { opacity:.5; cursor:wait; }
   .btn.ghost { background:transparent; color:#fff; border-color:#333; }
   .meta { margin-top:28px; color:#6f6f6f; font-size:13px; min-height:1.4em; }
   .meta b { color:#cfcfcf; font-weight:600; }
@@ -44,85 +42,42 @@
   </div>
   <main>
     <h1>Meet <img src="../logohive.png" alt="" /> Hive</h1>
-    <p class="lead">A Windows workspace for concurrent agents. Give them real work. They search, write, and come back with finished work.</p>
+    <p class="lead">Windows installer. Tag 0.0.1.6 — no v prefix. Login is hivetools.pro inside the app.</p>
     <div class="cta">
-      <button class="btn" type="button" id="dl" disabled>Download for Windows</button>
-      <a class="btn ghost" href="../">Contact / waitlist</a>
+      <a class="btn" id="dl" href="https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.6/Hive-Setup-0.0.1.6.exe">Download 0.0.1.6</a>
+      <a class="btn ghost" href="../">Back to Hive</a>
     </div>
-    <p class="meta" id="meta">Looking up the latest installer…</p>
+    <p class="meta" id="meta">Version <b>0.0.1.6</b> · Windows 10 / 11</p>
   </main>
-  <footer>Windows 10 / 11 · Installer from Hive-Desktop</footer>
+  <footer>Windows 10 / 11 · Hive-Desktop release 0.0.1.6</footer>
 <script>
   var FALLBACK = {
-    version: '0.0.1.5',
-    fileName: 'Hive-Setup-0.0.1.5.exe',
-    fileUrl: 'https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.5/Hive-Setup-0.0.1.5.exe'
+    version: '0.0.1.6',
+    fileName: 'Hive-Setup-0.0.1.6.exe',
+    fileUrl: 'https://github.com/samkomedved319-dev/Hive-Desktop/releases/download/0.0.1.6/Hive-Setup-0.0.1.6.exe'
   };
-  var sb = window.supabase.createClient(
-    'https://nqkmnmwbmikbgopwkvse.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU',
-    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } }
-  );
   var dl = document.getElementById('dl');
   var meta = document.getElementById('meta');
-  var fileUrl = '';
-  var fileName = 'Hive-Setup.exe';
-  function useInstaller(version, url, name) {
-    fileUrl = url;
-    fileName = name;
-    dl.disabled = false;
+  function useInstaller(version, url) {
+    dl.href = url;
+    dl.textContent = 'Download ' + version;
     meta.innerHTML = 'Version <b>' + version + '</b> · Windows 10 / 11';
   }
-  function fromManifest(j) {
-    if (!j || !j.downloadUrl) return false;
-    var ver = String(j.version || FALLBACK.version);
-    var name = 'Hive-Setup-' + ver + '.exe';
-    useInstaller(ver, j.downloadUrl, name);
-    return true;
-  }
-  fetch('https://raw.githubusercontent.com/samkomedved319-dev/HiveSOURCE/main/latest.json?t=' + Date.now())
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (j) {
-      if (fromManifest(j)) return;
-      return sb.from('releases').select('*').eq('is_latest', true).order('created_at', { ascending: false }).limit(1)
-        .then(function (r) {
-          var row = r.data && r.data[0];
-          if (row && row.file_url) {
-            useInstaller(row.version || '', row.file_url, row.filename || ('Hive-Setup-' + (row.version || '') + '.exe'));
-            return;
-          }
-          useInstaller(FALLBACK.version, FALLBACK.fileUrl, FALLBACK.fileName);
-        });
-    })
-    .catch(function () {
-      useInstaller(FALLBACK.version, FALLBACK.fileUrl, FALLBACK.fileName);
-    });
-  dl.addEventListener('click', async function () {
-    if (!fileUrl) return;
-    dl.disabled = true;
-    dl.textContent = 'Downloading…';
-    try {
-      var res = await fetch(fileUrl);
-      if (!res.ok) throw new Error('bad status');
-      var blob = await res.blob();
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (e) {
-      var a = document.createElement('a');
-      a.href = fileUrl;
-      a.download = fileName;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-    dl.disabled = false;
-    dl.textContent = 'Download for Windows';
-  });
+  useInstaller(FALLBACK.version, FALLBACK.fileUrl);
+  var urls = [
+    'https://raw.githubusercontent.com/samkomedved319-dev/HiveSOURCE/main/latest.json?t=' + Date.now(),
+    'https://raw.githubusercontent.com/samkomedved319-dev/Hive-Desktop/main/latest.json?t=' + Date.now()
+  ];
+  (function next(i) {
+    if (i >= urls.length) return;
+    fetch(urls[i]).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (j && j.downloadUrl) {
+        useInstaller(String(j.version || FALLBACK.version), j.downloadUrl);
+        return;
+      }
+      next(i + 1);
+    }).catch(function () { next(i + 1); });
+  })(0);
 </script>
 </body>
 </html>
