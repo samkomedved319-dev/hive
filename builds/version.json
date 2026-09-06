@@ -1,11 +1,12 @@
 {
-  "version": "0.0.3",
+  "version": "0.0.1.4",
   "channel": "Windows preview",
   "released": "2026-09-06",
-  "filename": "HiveSetup-0.0.3.exe",
-  "pageFile": "builds/HiveSetup-0.0.3.exe",
-  "githubRelease": "https://github.com/samkomedved319-dev/hive/releases/download/v0.0.3/HiveSetup-0.0.3.exe",
-  "githubRepo": "https://github.com/samkomedved319-dev/hive",
-  "notes": "Command palette, swarm, Allow/Deny, tray, chips, ink.",
+  "filename": "Hive-Setup-0.0.1.4.exe",
+  "pageFile": "download-win.html",
+  "githubRelease": "https://github.com/samkomedved319-dev/Hive-Desktop/releases/latest/download/Hive-Setup-0.0.1.4.exe",
+  "mirror": "https://github.com/samkomedved319-dev/hive-releases/releases/latest/download/Hive-Setup-0.0.1.4.exe",
+  "page": "https://samkomedved319-dev.github.io/hive/download-win.html",
+  "notes": "Hive Free TokenRouter models, 1M tokens/day.",
   "minOs": "Windows 10 / 11"
 }
