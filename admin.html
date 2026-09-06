@@ -41,7 +41,7 @@
 </head>
 <body>
 <div class="wrap">
-  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a> · <a href="download-win.html">Download page</a></p>
+  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a> · <a href="https://github.com/samkomedved319-dev/hive-releases/releases">Downloads</a></p>
   <h1>Waitlist review</h1>
   <p class="sub">Approve members. Feedback from the desktop app appears below.</p>
   <p id="msg">Loading…</p>
@@ -66,7 +66,6 @@
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   var msg = document.getElementById('msg');
   var list = document.getElementById('list');
-  var SETUP = `-- Run once in Supabase → SQL Editor\ninsert into storage.buckets (id, name, public)\n  values ('installers', 'installers', true)\n  on conflict (id) do nothing;\n\ncreate table if not exists public.releases (\n  id uuid primary key default gen_random_uuid(),\n  version text not null,\n  title text not null,\n  notes text,\n  filename text not null,\n  file_path text not null,\n  file_url text,\n  file_size bigint,\n  is_latest boolean not null default true,\n  created_at timestamptz not null default now()\n);\nalter table public.releases enable row level security;\ndrop policy if exists \"public read releases\" on public.releases;\ncreate policy \"public read releases\" on public.releases for select using (true);\ndrop policy if exists \"admin write releases\" on public.releases;\ncreate policy \"admin write releases\" on public.releases for all\n  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))\n  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));\n\ndrop policy if exists \"public read installers\" on storage.objects;\ncreate policy \"public read installers\" on storage.objects for select using (bucket_id = 'installers');\ndrop policy if exists \"admin write installers\" on storage.objects;\ncreate policy \"admin write installers\" on storage.objects for all\n  using (bucket_id = 'installers' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))\n  with check (bucket_id = 'installers' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));`;
 
   async function boot() {
     var s = await sb.auth.getSession();
