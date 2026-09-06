@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /drop.html
+Disallow: /builds/
+Disallow: /admin.html
+Disallow: /admin

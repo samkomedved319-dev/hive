@@ -1,0 +1,11 @@
+{
+  "version": "0.0.3",
+  "channel": "Windows preview",
+  "released": "2026-09-06",
+  "filename": "HiveSetup-0.0.3.exe",
+  "pageFile": "builds/HiveSetup-0.0.3.exe",
+  "githubRelease": "https://github.com/samkomedved319-dev/hive/releases/download/v0.0.3/HiveSetup-0.0.3.exe",
+  "githubRepo": "https://github.com/samkomedved319-dev/hive",
+  "notes": "Command palette, swarm, Allow/Deny, tray, chips, ink.",
+  "minOs": "Windows 10 / 11"
+}
