@@ -49,12 +49,14 @@
   <div id="emails" style="margin-top:18px;"></div>
 
   <h1 style="margin-top:48px;">Installer releases</h1>
-  <p class="sub">Installers live on a public GitHub repo. People on other devices download with no GitHub account.</p>
-  <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;">
-    <a class="btn primary" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases">View downloads</a>
-    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/new">Publish a new version</a>
+  <p class="sub">Installers live on a public GitHub repo. Other devices download with no GitHub account.</p>
+  <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+    <a class="btn primary" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases">Open downloads</a>
+    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/edit/v0.0.3">Attach installer to v0.0.3</a>
+    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/new">New version</a>
   </p>
-  <p class="sub">Tag like <code>v0.0.4</code>, attach the .exe, publish. Anyone can grab it from Releases.</p>
+  <p class="sub">On the edit page: drag the .exe into Assets, then Update release. After that anyone can download without signing in.</p>
+  <div id="gh-rels"><p class="sub">Loading GitHub releases…</p></div>
 
   <h1 style="margin-top:36px;">Feedback</h1>
   <p class="sub">Reviews sent from Hive desktop.</p>
@@ -82,6 +84,7 @@
     await load();
     await loadFb();
     await loadEmails();
+    loadGh();
   }
   async function loadFb() {
     var box = document.getElementById('fb');
@@ -126,7 +129,20 @@
     if (r.error) { msg.textContent = r.error.message; return; }
     await load();
   }
-  window.review = review;
+  function loadGh() {
+    var box = document.getElementById('gh-rels');
+    if (!box) return;
+    fetch('https://api.github.com/repos/samkomedved319-dev/hive-releases/releases')
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        if (!list || !list.length) { box.innerHTML = '<p class="sub">No GitHub releases yet.</p>'; return; }
+        box.innerHTML = list.map(function (rel) {
+          var assets = (rel.assets || []).map(function (a) { return a.name; }).join(', ') || 'no installer attached yet';
+          return '<div class="row"><div class="who"><b>' + escapeHtml(rel.name || rel.tag_name) + '</b><span>' + escapeHtml(assets) + '</span></div><a class="btn" href="' + rel.html_url + '">Open</a></div>';
+        }).join('');
+      })
+      .catch(function () { box.innerHTML = '<p class="sub">Could not list GitHub releases.</p>'; });
+  }
   boot();
 </script>
 </body>
