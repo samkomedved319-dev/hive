@@ -46,6 +46,7 @@
   <p class="sub">Approve members. Feedback from the desktop app appears below.</p>
   <p id="msg">Loading…</p>
   <div id="list"></div>
+  <div id="emails" style="margin-top:18px;"></div>
 
   <h1 style="margin-top:48px;">Installer releases</h1>
   <p class="sub">Publish a Windows build. It shows on the private download page — no GitHub login.</p>
@@ -85,6 +86,7 @@
     await load();
     await loadFb();
     await loadReleases();
+    await loadEmails();
   }
   async function loadFb() {
     var box = document.getElementById('fb');
@@ -109,6 +111,17 @@
       var whenTxt = when ? new Date(when).toLocaleString() : '';
       var acts = p.status === 'pending' ? '<div class="acts"><button class="ok" onclick="review(\'' + p.id + '\',\'approved\')">Approve</button><button class="no" onclick="review(\'' + p.id + '\',\'denied\')">Decline</button></div>' : '<div class="acts"></div>';
       return '<div class="row"><div class="who"><b>' + escapeHtml(p.display_name || p.email || p.id) + '</b><span>' + escapeHtml(p.email || '') + ' · ' + whenTxt + '</span></div><span class="badge ' + p.status + '">' + p.status + '</span>' + acts + '</div>';
+    }).join('');
+  }
+  async function loadEmails() {
+    var box = document.getElementById('emails');
+    if (!box) return;
+    var r = await sb.from('waitlist_emails').select('*').order('created_at', { ascending: false });
+    if (r.error) { box.innerHTML = ''; return; }
+    var rows = r.data || [];
+    if (!rows.length) { box.innerHTML = '<p class="sub">No extra waitlist emails.</p>'; return; }
+    box.innerHTML = '<p class="sub">' + rows.length + ' emails joined from the homepage form.</p>' + rows.map(function (p) {
+      return '<div class="row"><div class="who"><b>' + escapeHtml(p.email) + '</b><span>' + (p.created_at ? new Date(p.created_at).toLocaleString() : '') + '</span></div><span class="badge pending">email</span></div>';
     }).join('');
   }
   function escapeHtml(s) { return String(s || '').replace(/[&<>\"']/g, function (c) { return ({ '&':'&', '<':'<', '>':'>', '\"':'"', \"'\":'&#39;' })[c]; }); }

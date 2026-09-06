@@ -535,14 +535,21 @@
             if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
             return;
           }
+          var add = await sb.rpc('add_waitlist_email', { addr: email });
+          if (add.error) throw add.error;
+          try {
+            var saved = JSON.parse(localStorage.getItem('hive_waitlist') || '[]');
+            saved.push(email);
+            localStorage.setItem('hive_waitlist', JSON.stringify(saved));
+          } catch (e) {}
+          if (done) { done.style.display = 'block'; done.textContent = 'You are on the waitlist.'; }
+          await loadWaitlistStats();
+          return;
         }
-      } catch (e) {}
-      var up = document.getElementById('auth-up-email');
-      if (up) up.value = email;
-      if (typeof switchAuthTab === 'function') switchAuthTab('up');
-      if (typeof openAuth === 'function') openAuth();
-      if (done) { done.style.display = 'block'; done.textContent = 'Create your account — then confirm the waitlist prompt.'; }
-    });;
+      } catch (e) {
+        if (done) { done.style.display = 'block'; done.textContent = (e && e.message) || 'Could not join.'; }
+      }
+    });
   })();
 </script>
 <script>
@@ -660,16 +667,12 @@
     var res = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     if (res.error) throw res.error;
     if (res.data) {
-      if (res.data.status !== 'approved') {
-        var up = await sb.from('profiles').update({ status: 'approved' }).eq('id', user.id).select().single();
-        if (!up.error && up.data) return up.data;
-      }
       return res.data;
     }
     var ins = await sb.from('profiles').insert({
       id: user.id, email: email,
       display_name: name || email.split('@')[0] || 'Hive member',
-      status: 'approved'
+      status: 'none'
     }).select().single();
     if (ins.error) throw ins.error;
     return ins.data;
@@ -726,6 +729,7 @@
       sbProfileChip(r.data.user, profile);
       if (handoffToDesktop(r.data.session)) return;
       closeAuth();
+      openWaitlistInvite(r.data.user, profile);
     } catch (e) { sbMsg(e.message || 'Sign up failed.', true); }
   }
 
