@@ -6,7 +6,7 @@
 <title>Hive — the desktop AI that does things</title>
 <meta name="description" content="Hive is a black-theme desktop AI workspace for Windows: cited research, a concurrent swarm, a cursor buddy, and real PC control. Invite-only preview." />
 <link rel="icon" type="image/png" href="logohive.png" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
 <style>
 
   :root {
@@ -518,10 +518,28 @@
   /* Hive accounts (Supabase). Setup: README.md — paste URL + anon key below. */
   var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
+  var HIVE_SITE_URL = (function () {
+    try {
+      var path = (location.pathname || '/').replace(/\/index\.html$/i, '/');
+      if (path.indexOf('/hive') === 0) path = '/hive/';
+      if (!path || path === '/') path = '/';
+      if (path.charAt(path.length - 1) !== '/') path += '/';
+      return location.origin + path;
+    } catch (e) {
+      return 'https://hivetools.pro/hive/';
+    }
+  })();
   var sb = null;
   try {
     if (window.supabase && SUPABASE_URL.indexOf('PASTE-YOUR') !== 0) {
-      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce'
+        }
+      });
     }
   } catch (e) { sb = null; }
 
@@ -659,17 +677,23 @@
 
   async function ensureProfile(user, name) {
     var email = user.email || '';
-    var res = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    if (res.error) throw res.error;
-    if (res.data) {
-      return res.data;
+    async function read() {
+      var res = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (res.error && String(res.error.code || '') !== 'PGRST116') throw res.error;
+      return res.data || null;
     }
+    var existing = await read();
+    if (existing) return existing;
     var ins = await sb.from('profiles').insert({
       id: user.id, email: email,
       display_name: name || email.split('@')[0] || 'Hive member',
       status: 'none'
     }).select().single();
-    if (ins.error) throw ins.error;
+    if (ins.error) {
+      existing = await read();
+      if (existing) return existing;
+      throw ins.error;
+    }
     return ins.data;
   }
 
@@ -698,7 +722,8 @@
     try {
       var r = await sb.auth.signInWithPassword({ email: email, password: pass });
       if (r.error) throw r.error;
-      var profile = await ensureProfile(r.data.user, '');
+      var profile = { display_name: email.split('@')[0], status: 'none', email: email };
+      try { profile = await ensureProfile(r.data.user, '') || profile; } catch (pe) {}
       sbProfileChip(r.data.user, profile);
       if (handoffToDesktop(r.data.session)) return;
       closeAuth();
@@ -712,7 +737,14 @@
     var email = document.getElementById('auth-up-email').value.trim();
     var pass = document.getElementById('auth-up-pass').value;
     try {
-      var r = await sb.auth.signUp({ email: email, password: pass, options: { data: { display_name: name || undefined } } });
+      var r = await sb.auth.signUp({
+        email: email,
+        password: pass,
+        options: {
+          data: { display_name: name || undefined },
+          emailRedirectTo: HIVE_SITE_URL
+        }
+      });
       if (r.error) throw r.error;
       if (!r.data.session) {
         sbMsg('Account created — check your inbox to confirm, then sign in.', false);
