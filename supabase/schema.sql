@@ -1,4 +1,6 @@
--- Hive website auth schema (already applied on project nqkmnmwbmikbgopwkvse)
+-- Hive website auth + installer hosting
+-- Run this whole file once in Supabase SQL editor.
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
@@ -9,6 +11,8 @@ create table if not exists public.profiles (
   notify boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+alter table public.profiles add column if not exists is_admin boolean not null default false;
 
 alter table public.profiles enable row level security;
 
@@ -25,64 +29,36 @@ drop policy if exists "update own profile" on public.profiles;
 create policy "update own profile"
   on public.profiles for update using (auth.uid() = id);
 
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.profiles (id, email, display_name, status)
-  values (
-    new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1), 'Hive member'),
-    'approved'
-  )
-  on conflict (id) do update
-    set email = excluded.email;
-  return new;
-end;
-$$;
+update public.profiles
+  set is_admin = true
+  where email ilike '%samkomedved%';
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
-create or replace function public.waitlist_stats()
-returns json
+create or replace function public.is_hive_admin()
+returns boolean
 language sql
+stable
 security definer
 set search_path = public
-stable
 as $$
-  select json_build_object(
-    'total', (select count(*) from public.profiles),
-    'waiting', (select count(*) from public.profiles where status = 'pending')
+  select coalesce((
+    select p.is_admin or p.email ilike '%samkomedved%'
+    from public.profiles p
+    where p.id = auth.uid()
+  ), false)
+  or exists (
+    select 1 from auth.users u
+    where u.id = auth.uid()
+      and coalesce(u.email, '') ilike '%samkomedved%'
   );
 $$;
 
-grant execute on function public.waitlist_stats() to anon, authenticated;
+grant execute on function public.is_hive_admin() to anon, authenticated;
 
-create table if not exists public.feedback (
-  id uuid primary key default gen_random_uuid(),
-  email text,
-  body text not null,
-  rating int,
-  status text not null default 'pending'
-    check (status in ('pending', 'reviewed', 'shipped')),
-  created_at timestamptz not null default now()
-);
-alter table public.feedback enable row level security;
-drop policy if exists "insert feedback" on public.feedback;
-create policy "insert feedback" on public.feedback for insert with check (true);
-drop policy if exists "read own feedback" on public.feedback;
-create policy "read own feedback" on public.feedback for select using (true);
-
-insert into storage.buckets (id, name, public)
-  values ('installers', 'installers', true)
-  on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit)
+  values ('installers', 'installers', true, 524288000)
+  on conflict (id) do update
+    set public = true,
+        file_size_limit = 524288000;
 
 create table if not exists public.releases (
   id uuid primary key default gen_random_uuid(),
@@ -101,7 +77,16 @@ drop policy if exists "public read releases" on public.releases;
 create policy "public read releases" on public.releases for select using (true);
 drop policy if exists "admin write releases" on public.releases;
 create policy "admin write releases" on public.releases for all
-  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))
-  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+  using (public.is_hive_admin())
+  with check (public.is_hive_admin());
 
+drop policy if exists "public read installers" on storage.objects;
+create policy "public read installers"
+  on storage.objects for select
+  using (bucket_id = 'installers');
 
+drop policy if exists "admin write installers" on storage.objects;
+create policy "admin write installers"
+  on storage.objects for all
+  using (bucket_id = 'installers' and public.is_hive_admin())
+  with check (bucket_id = 'installers' and public.is_hive_admin());
