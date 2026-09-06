@@ -26,7 +26,7 @@
   button, .btn { font-family:inherit; cursor:pointer; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--text); }
   button.ok { background:#10B981; color:#000; border:none; }
   button.no { background:#F04438; color:#fff; border:none; }
-  button.primary { background:var(--orange); color:#000; border:none; min-height:44px; padding:10px 16px; border-radius:999px; }
+  button.primary, a.primary { background:var(--orange); color:#000; border:none; min-height:44px; padding:10px 16px; border-radius:999px; }
   .acts { display:flex; gap:8px; }
   #msg, #rel-msg { color:var(--dim); margin-bottom:16px; font-size:14px; }
   label { display:block; font-size:12px; color:var(--dim); margin:12px 0 6px; }
@@ -49,21 +49,12 @@
   <div id="emails" style="margin-top:18px;"></div>
 
   <h1 style="margin-top:48px;">Installer releases</h1>
-  <p class="sub">Publish a Windows build. People download with no GitHub sign-in. Easiest: <a href="https://github.com/samkomedved319-dev/hive-releases/releases/new" target="_blank" rel="noopener">drop the .exe as a public Release</a>.</p>
-  <p id="rel-msg"></p>
-  <form class="form" id="rel-form">
-    <label for="rel-version">Version</label>
-    <input id="rel-version" required placeholder="0.0.4" />
-    <label for="rel-title">Name</label>
-    <input id="rel-title" required placeholder="Hive 0.0.4" />
-    <label for="rel-notes">What’s new</label>
-    <textarea id="rel-notes" placeholder="Command palette, swarm, Allow/Deny…"></textarea>
-    <label for="rel-file">Installer (.exe)</label>
-    <input id="rel-file" type="file" accept=".exe,.msi" required />
-    <div style="margin-top:16px;"><button class="primary" type="submit">Publish this version</button></div>
-  </form>
-  <pre id="setup-sql"></pre>
-  <div id="releases"></div>
+  <p class="sub">Installers live on a public GitHub repo. People on other devices download with no GitHub account.</p>
+  <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;">
+    <a class="btn primary" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases">View downloads</a>
+    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/new">Publish a new version</a>
+  </p>
+  <p class="sub">Tag like <code>v0.0.4</code>, attach the .exe, publish. Anyone can grab it from Releases.</p>
 
   <h1 style="margin-top:36px;">Feedback</h1>
   <p class="sub">Reviews sent from Hive desktop.</p>
@@ -80,24 +71,17 @@
   async function boot() {
     var s = await sb.auth.getSession();
     var user = s.data && s.data.session && s.data.session.user;
-    var form = document.getElementById('rel-form');
     if (!user) {
       msg.textContent = 'Sign in on the homepage first (same browser), then refresh this page.';
-      document.getElementById('rel-msg').textContent = 'Not signed in — cannot publish.';
       return;
     }
     var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     if (!me.data || !me.data.is_admin) {
       msg.textContent = 'Signed in as ' + (user.email || '') + ' — this account is not admin.';
-      document.getElementById('rel-msg').textContent = 'Admins only.';
       return;
     }
-    if (form) form.style.display = 'block';
-    msg.textContent = 'Signed in as ' + (user.email || '') + ' (admin).';
-    document.getElementById('rel-msg').textContent = 'Ready to publish.';
     await load();
     await loadFb();
-    await loadReleases();
     await loadEmails();
   }
   async function loadFb() {
@@ -143,82 +127,7 @@
     if (r.error) { msg.textContent = r.error.message; return; }
     await load();
   }
-  function showSetup(err) {
-    var el = document.getElementById('setup-sql');
-    el.style.display = 'block';
-    el.textContent = (err ? err + '\n\n' : '') + SETUP;
-    document.getElementById('rel-msg').textContent = 'Run the SQL below once in Supabase, then publish again.';
-  }
-  async function loadReleases() {
-    var box = document.getElementById('releases');
-    var r = await sb.from('releases').select('*').order('created_at', { ascending: false });
-    if (r.error) { showSetup(r.error.message); box.innerHTML = ''; return; }
-    document.getElementById('setup-sql').style.display = 'none';
-    var rows = r.data || [];
-    if (!rows.length) { box.innerHTML = '<p class="sub">No releases yet.</p>'; return; }
-    box.innerHTML = rows.map(function (p) {
-      var tag = p.is_latest ? '<span class="badge approved">latest</span>' : '';
-      return '<div class="row"><div class="who"><b>' + escapeHtml(p.title || p.version) + '</b><span>v' + escapeHtml(p.version) + ' · ' + escapeHtml(p.filename || '') + '</span></div>' + tag + '<div class="acts"><button class="no" onclick="delRel(\'' + p.id + '\',\'' + escapeHtml(p.file_path || '') + '\')">Remove</button></div></div>';
-    }).join('');
-  }
-  async function delRel(id, path) {
-    if (!window.confirm('Remove this version?')) return;
-    if (path) await sb.storage.from('installers').remove([path]);
-    await sb.from('releases').delete().eq('id', id);
-    await loadReleases();
-  }
-  document.getElementById('rel-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var version = document.getElementById('rel-version').value.trim();
-    var title = document.getElementById('rel-title').value.trim();
-    var notes = document.getElementById('rel-notes').value.trim();
-    var file = document.getElementById('rel-file').files[0];
-    var relMsg = document.getElementById('rel-msg');
-    if (!file) { relMsg.textContent = 'Pick the installer file.'; return; }
-    var sess = await sb.auth.getSession();
-    var token = sess.data && sess.data.session && sess.data.session.access_token;
-    if (!token) { relMsg.textContent = 'Sign in on the homepage first, then refresh.'; return; }
-    var filename = file.name || ('HiveSetup-' + version + '.exe');
-    var path = version + '/' + filename.replace(/[^\w.\-()+ ]/g, '_');
-    relMsg.textContent = 'Uploading ' + filename + ' (' + (file.size / 1048576).toFixed(1) + ' MB)…';
-    var encoded = path.split('/').map(encodeURIComponent).join('/');
-    var put = await fetch(SUPABASE_URL + '/storage/v1/object/installers/' + encoded, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: 'Bearer ' + token,
-        'x-upsert': 'true',
-        'Content-Type': file.type || 'application/octet-stream'
-      },
-      body: file
-    });
-    if (!put.ok) {
-      var body = await put.text();
-      relMsg.textContent = 'Upload failed (' + put.status + '): ' + body;
-      return;
-    }
-    var pub = sb.storage.from('installers').getPublicUrl(path);
-    var fileUrl = pub.data && pub.data.publicUrl;
-    relMsg.textContent = 'Saving release…';
-    var ins = await sb.rpc('publish_release', {
-      p_version: version,
-      p_title: title,
-      p_notes: notes,
-      p_filename: filename,
-      p_file_path: path,
-      p_file_url: fileUrl,
-      p_file_size: file.size
-    });
-    if (ins.error) {
-      relMsg.textContent = 'File uploaded, listing failed: ' + ins.error.message;
-      return;
-    }
-    relMsg.textContent = 'Published v' + version + '. Open the download page.';
-    e.target.reset();
-    await loadReleases();
-  });
   window.review = review;
-  window.delRel = delRel;
   boot();
 </script>
 </body>
