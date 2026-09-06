@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hive — waitlist review</title>
+<meta name="robots" content="noindex, nofollow" />
+<title>Hive — admin</title>
 <link rel="icon" type="image/png" href="logohive.png" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -22,21 +23,47 @@
   .approved { color:#10B981; background:rgba(16,185,129,.12); }
   .denied { color:#F04438; background:rgba(240,68,56,.12); }
   .none { color:var(--dim); background:rgba(113,118,123,.14); }
-  button { font-family:inherit; cursor:pointer; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--text); }
+  button, .btn { font-family:inherit; cursor:pointer; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--text); }
   button.ok { background:#10B981; color:#000; border:none; }
   button.no { background:#F04438; color:#fff; border:none; }
+  button.primary { background:var(--orange); color:#000; border:none; min-height:44px; padding:10px 16px; border-radius:999px; }
   .acts { display:flex; gap:8px; }
-  #msg { color:var(--dim); margin-bottom:16px; font-size:14px; }
+  #msg, #rel-msg { color:var(--dim); margin-bottom:16px; font-size:14px; }
+  label { display:block; font-size:12px; color:var(--dim); margin:12px 0 6px; }
+  input, textarea {
+    width:100%; background:var(--s1); border:1px solid var(--line); border-radius:12px;
+    color:var(--text); font:14px inherit; padding:11px 14px;
+  }
+  textarea { min-height:120px; resize:vertical; }
+  .form { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; }
+  pre { white-space:pre-wrap; background:#0b0c10; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:12px; color:#c9ccd1; display:none; margin-top:12px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a></p>
+  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a> · <a href="download-win.html">Download page</a></p>
   <h1>Waitlist review</h1>
-  <p style="color:#71767b;font-size:13px;margin:-12px 0 18px;">Hive v0.0.1</p>
   <p class="sub">Approve members. Feedback from the desktop app appears below.</p>
   <p id="msg">Loading…</p>
   <div id="list"></div>
+
+  <h1 style="margin-top:48px;">Installer releases</h1>
+  <p class="sub">Publish a Windows build. It shows on the private download page — no GitHub login.</p>
+  <p id="rel-msg"></p>
+  <form class="form" id="rel-form">
+    <label for="rel-version">Version</label>
+    <input id="rel-version" required placeholder="0.0.4" />
+    <label for="rel-title">Name</label>
+    <input id="rel-title" required placeholder="Hive 0.0.4" />
+    <label for="rel-notes">What’s new</label>
+    <textarea id="rel-notes" placeholder="Command palette, swarm, Allow/Deny…"></textarea>
+    <label for="rel-file">Installer (.exe)</label>
+    <input id="rel-file" type="file" accept=".exe,.msi" required />
+    <div style="margin-top:16px;"><button class="primary" type="submit">Publish this version</button></div>
+  </form>
+  <pre id="setup-sql"></pre>
+  <div id="releases"></div>
+
   <h1 style="margin-top:36px;">Feedback</h1>
   <p class="sub">Reviews sent from Hive desktop.</p>
   <div id="fb"></div>
@@ -47,6 +74,8 @@
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   var msg = document.getElementById('msg');
   var list = document.getElementById('list');
+  var SETUP = `-- Run once in Supabase → SQL Editor\ninsert into storage.buckets (id, name, public)\n  values ('installers', 'installers', true)\n  on conflict (id) do nothing;\n\ncreate table if not exists public.releases (\n  id uuid primary key default gen_random_uuid(),\n  version text not null,\n  title text not null,\n  notes text,\n  filename text not null,\n  file_path text not null,\n  file_url text,\n  file_size bigint,\n  is_latest boolean not null default true,\n  created_at timestamptz not null default now()\n);\nalter table public.releases enable row level security;\ndrop policy if exists \"public read releases\" on public.releases;\ncreate policy \"public read releases\" on public.releases for select using (true);\ndrop policy if exists \"admin write releases\" on public.releases;\ncreate policy \"admin write releases\" on public.releases for all\n  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))\n  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));\n\ndrop policy if exists \"public read installers\" on storage.objects;\ncreate policy \"public read installers\" on storage.objects for select using (bucket_id = 'installers');\ndrop policy if exists \"admin write installers\" on storage.objects;\ncreate policy \"admin write installers\" on storage.objects for all\n  using (bucket_id = 'installers' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))\n  with check (bucket_id = 'installers' and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));`;
+
   async function boot() {
     var s = await sb.auth.getSession();
     var user = s.data && s.data.session && s.data.session.user;
@@ -55,6 +84,7 @@
     if (!me.data || !me.data.is_admin) { msg.textContent = 'Admins only. In Supabase profiles, set is_admin = true on your row.'; return; }
     await load();
     await loadFb();
+    await loadReleases();
   }
   async function loadFb() {
     var box = document.getElementById('fb');
@@ -81,13 +111,68 @@
       return '<div class="row"><div class="who"><b>' + escapeHtml(p.display_name || p.email || p.id) + '</b><span>' + escapeHtml(p.email || '') + ' · ' + whenTxt + '</span></div><span class="badge ' + p.status + '">' + p.status + '</span>' + acts + '</div>';
     }).join('');
   }
-  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return ({ '&':'&', '<':'<', '>':'>', '"':'"', "'":'&#39;' })[c]; }); }
+  function escapeHtml(s) { return String(s || '').replace(/[&<>\"']/g, function (c) { return ({ '&':'&', '<':'<', '>':'>', '\"':'"', \"'\":'&#39;' })[c]; }); }
   async function review(id, decision) {
     var note = decision === 'denied' ? (window.prompt('Optional note for this decline:') || null) : null;
     var r = await sb.rpc('review_waitlist', { target: id, decision: decision, note: note });
     if (r.error) { msg.textContent = r.error.message; return; }
     await load();
   }
+  function showSetup(err) {
+    var el = document.getElementById('setup-sql');
+    el.style.display = 'block';
+    el.textContent = (err ? err + '\n\n' : '') + SETUP;
+    document.getElementById('rel-msg').textContent = 'Run the SQL below once in Supabase, then publish again.';
+  }
+  async function loadReleases() {
+    var box = document.getElementById('releases');
+    var r = await sb.from('releases').select('*').order('created_at', { ascending: false });
+    if (r.error) { showSetup(r.error.message); box.innerHTML = ''; return; }
+    document.getElementById('setup-sql').style.display = 'none';
+    var rows = r.data || [];
+    if (!rows.length) { box.innerHTML = '<p class="sub">No releases yet.</p>'; return; }
+    box.innerHTML = rows.map(function (p) {
+      var tag = p.is_latest ? '<span class="badge approved">latest</span>' : '';
+      return '<div class="row"><div class="who"><b>' + escapeHtml(p.title || p.version) + '</b><span>v' + escapeHtml(p.version) + ' · ' + escapeHtml(p.filename || '') + '</span></div>' + tag + '<div class="acts"><button class="no" onclick="delRel(\'' + p.id + '\',\'' + escapeHtml(p.file_path || '') + '\')">Remove</button></div></div>';
+    }).join('');
+  }
+  async function delRel(id, path) {
+    if (!window.confirm('Remove this version?')) return;
+    if (path) await sb.storage.from('installers').remove([path]);
+    await sb.from('releases').delete().eq('id', id);
+    await loadReleases();
+  }
+  document.getElementById('rel-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var version = document.getElementById('rel-version').value.trim();
+    var title = document.getElementById('rel-title').value.trim();
+    var notes = document.getElementById('rel-notes').value.trim();
+    var file = document.getElementById('rel-file').files[0];
+    if (!file) return;
+    var filename = file.name || ('HiveSetup-' + version + '.exe');
+    var path = version + '/' + filename;
+    document.getElementById('rel-msg').textContent = 'Uploading…';
+    var up = await sb.storage.from('installers').upload(path, file, { upsert: true, contentType: 'application/octet-stream' });
+    if (up.error) { showSetup(up.error.message); return; }
+    var pub = sb.storage.from('installers').getPublicUrl(path);
+    await sb.from('releases').update({ is_latest: false }).eq('is_latest', true);
+    var ins = await sb.from('releases').insert({
+      version: version,
+      title: title,
+      notes: notes,
+      filename: filename,
+      file_path: path,
+      file_url: pub.data && pub.data.publicUrl,
+      file_size: file.size,
+      is_latest: true
+    });
+    if (ins.error) { showSetup(ins.error.message); return; }
+    document.getElementById('rel-msg').textContent = 'Published v' + version + '.';
+    e.target.reset();
+    await loadReleases();
+  });
+  window.review = review;
+  window.delRel = delRel;
   boot();
 </script>
 </body>

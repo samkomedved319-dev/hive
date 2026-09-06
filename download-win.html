@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Download Hive for Windows</title>
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="googlebot" content="noindex, nofollow, noarchive" />
+<link rel="icon" type="image/png" href="logohive.png" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #050506;
+    --card: #12141a;
+    --line: #2a2d34;
+    --text: #e7e9ea;
+    --dim: #8b9098;
+    --honey: #f08a24;
+    --ok: #34d399;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px 64px;
+    gap: 28px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
+  .logo img { border-radius: 8px; }
+  .panel {
+    width: min(440px, 100%);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 36px 28px 28px;
+    text-align: center;
+  }
+  h1 { font-size: 30px; letter-spacing: -.03em; line-height: 1.15; }
+  .sub { margin-top: 10px; color: var(--dim); font-size: 15px; line-height: 1.5; }
+  .btn {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    border-radius: 999px;
+    background: var(--honey);
+    color: #000;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+  }
+  .btn[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+  .meta { margin-top: 12px; font-size: 13px; color: var(--dim); }
+  .notes {
+    margin-top: 22px;
+    text-align: left;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+  .notes h2 { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+  .notes p { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .prev { width: min(440px, 100%); }
+  .prev h2 { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+  .prev a {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--text);
+    text-decoration: none;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .prev a span { color: var(--dim); }
+  .empty { color: var(--dim); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="logo"><img src="logohive.png" alt="" width="28" height="28" /> Hive</div>
+  <div class="panel">
+    <h1>Download Hive<br/>for Windows</h1>
+    <p class="sub">Windows 10 / 11 · private preview</p>
+    <a class="btn" id="dl" href="#" aria-disabled="true">Download</a>
+    <p class="meta" id="meta">Loading…</p>
+    <div class="notes" id="notes-wrap" hidden>
+      <h2>What’s new</h2>
+      <p id="notes"></p>
+    </div>
+  </div>
+  <div class="prev" id="prev" hidden>
+    <h2>Previous versions</h2>
+    <div id="prev-list"></div>
+  </div>
+</main>
+<script>
+  var SUPABASE_URL = 'https://nqkmnmwbmikbgopwkvse.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function fmtSize(n) {
+    if (!n) return '';
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(1) + ' MB';
+  }
+  function urlFor(row) {
+    if (row.file_url) return row.file_url;
+    return SUPABASE_URL + '/storage/v1/object/public/installers/' + row.file_path;
+  }
+
+  sb.from('releases').select('*').order('created_at', { ascending: false }).then(function (r) {
+    var rows = r.data || [];
+    var latest = rows.find(function (x) { return x.is_latest; }) || rows[0];
+    var dl = document.getElementById('dl');
+    var meta = document.getElementById('meta');
+    if (!latest) {
+      meta.textContent = 'No build published yet.';
+      return;
+    }
+    dl.href = urlFor(latest);
+    dl.setAttribute('download', latest.filename || ('HiveSetup-' + latest.version + '.exe'));
+    dl.removeAttribute('aria-disabled');
+    dl.textContent = 'Download Hive ' + latest.version;
+    var bits = ['v' + latest.version, 'Windows'];
+    if (latest.file_size) bits.push(fmtSize(latest.file_size));
+    if (latest.created_at) bits.push(new Date(latest.created_at).toLocaleDateString());
+    meta.textContent = bits.join(' · ');
+    if (latest.notes) {
+      document.getElementById('notes-wrap').hidden = false;
+      document.getElementById('notes').textContent = latest.notes;
+    }
+    var older = rows.filter(function (x) { return x.id !== latest.id; });
+    if (older.length) {
+      document.getElementById('prev').hidden = false;
+      document.getElementById('prev-list').innerHTML = older.map(function (x) {
+        return '<a href="' + urlFor(x) + '" download><b>' + (x.title || ('Hive ' + x.version)) + '</b><span>v' + x.version + (x.file_size ? ' · ' + fmtSize(x.file_size) : '') + '</span></a>';
+      }).join('');
+    }
+  });
+</script>
+</body>
+</html>

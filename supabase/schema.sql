@@ -80,4 +80,28 @@ create policy "insert feedback" on public.feedback for insert with check (true);
 drop policy if exists "read own feedback" on public.feedback;
 create policy "read own feedback" on public.feedback for select using (true);
 
+insert into storage.buckets (id, name, public)
+  values ('installers', 'installers', true)
+  on conflict (id) do nothing;
+
+create table if not exists public.releases (
+  id uuid primary key default gen_random_uuid(),
+  version text not null,
+  title text not null,
+  notes text,
+  filename text not null,
+  file_path text not null,
+  file_url text,
+  file_size bigint,
+  is_latest boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.releases enable row level security;
+drop policy if exists "public read releases" on public.releases;
+create policy "public read releases" on public.releases for select using (true);
+drop policy if exists "admin write releases" on public.releases;
+create policy "admin write releases" on public.releases for all
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true))
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin = true));
+
 

@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /drop.html
+Disallow: /download-win.html
 Disallow: /builds/
 Disallow: /admin.html
 Disallow: /admin
