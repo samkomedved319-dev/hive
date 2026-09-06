@@ -36,27 +36,35 @@
   }
   textarea { min-height:120px; resize:vertical; }
   .form { background:var(--s1); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; display:none; }
-  pre { white-space:pre-wrap; background:#0b0c10; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:12px; color:#c9ccd1; display:none; margin-top:12px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a> · <a href="https://github.com/samkomedved319-dev/hive-releases/releases">Downloads</a></p>
+  <p style="margin-bottom:18px;"><a href="index.html">← Hive</a> · <a href="download-win.html">Download page</a></p>
   <h1>Waitlist review</h1>
   <p class="sub">Approve members. Feedback from the desktop app appears below.</p>
   <p id="msg">Loading…</p>
   <div id="list"></div>
   <div id="emails" style="margin-top:18px;"></div>
 
-  <h1 style="margin-top:48px;">Installer releases</h1>
-  <p class="sub">Downloads are <b>not</b> on this website. They are on the public GitHub repo <a href="https://github.com/samkomedved319-dev/hive-releases">hive-releases</a> — anyone on any device, no GitHub account. v0.0.3 exists but has <b>no .exe attached yet</b>.</p>
-  <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-    <a class="btn primary" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/edit/v0.0.3">Attach the .exe to v0.0.3</a>
-    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases/new">New version</a>
-    <a class="btn" style="text-decoration:none;display:inline-flex;align-items:center;" href="https://github.com/samkomedved319-dev/hive-releases/releases">What people see</a>
-  </p>
-  <p class="sub">On the edit page, drag the installer into <b>Attach binaries</b>, then Update release. After that the public link works.</p>
-  <div id="gh-rels"><p class="sub">Loading GitHub releases…</p></div>
+  <h1 style="margin-top:48px;">Publish installer</h1>
+  <p class="sub">Upload a Setup.exe here. The public page <a href="download-win.html">download-win.html</a> switches to it. No GitHub sign-in for users. Files over ~50 MB: paste a public GitHub Releases URL instead.</p>
+  <div class="form" id="rel-form">
+    <label>Version</label>
+    <input id="rel-ver" placeholder="0.0.1.4" />
+    <label>Title</label>
+    <input id="rel-title" placeholder="Hive 0.0.1.4" />
+    <label>Notes (optional)</label>
+    <textarea id="rel-notes" placeholder="What’s new"></textarea>
+    <label>Installer file (.exe)</label>
+    <input id="rel-file" type="file" accept=".exe" />
+    <label>Or public download URL</label>
+    <input id="rel-url" placeholder="https://github.com/.../Hive-Setup-0.0.1.4.exe" />
+    <p style="margin-top:14px;"><button class="primary" type="button" id="rel-go">Publish to download page</button></p>
+    <p id="rel-msg"></p>
+  </div>
+  <div id="rel-list"></div>
+  <div id="gh-rels"></div>
 
   <h1 style="margin-top:36px;">Feedback</h1>
   <p class="sub">Reviews sent from Hive desktop.</p>
@@ -68,29 +76,50 @@
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
   var msg = document.getElementById('msg');
   var list = document.getElementById('list');
-
   async function boot() {
     var s = await sb.auth.getSession();
     var user = s.data && s.data.session && s.data.session.user;
-    if (!user) {
-      msg.textContent = 'Sign in on the homepage first (same browser), then refresh this page.';
-      loadGh();
-      return;
-    }
+    if (!user) { msg.textContent = 'Sign in on the homepage first (same browser), then refresh this page.'; loadGh(); return; }
     var me = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    if (!me.data || !me.data.is_admin) {
-      msg.textContent = 'Signed in as ' + (user.email || '') + ' — this account is not admin.';
-      loadGh();
-      return;
-    }
-    await load();
-    await loadFb();
-    await loadEmails();
-    loadGh();
+    if (!me.data || !me.data.is_admin) { msg.textContent = 'Signed in as ' + (user.email || '') + ' — this account is not admin.'; loadGh(); return; }
+    document.getElementById('rel-form').style.display = 'block';
+    await load(); await loadFb(); await loadEmails(); await loadRel(); loadGh();
   }
+  async function loadRel() {
+    var box = document.getElementById('rel-list');
+    var r = await sb.from('releases').select('*').order('created_at', { ascending: false }).limit(12);
+    if (r.error) { box.innerHTML = '<p class="sub">' + escapeHtml(r.error.message) + '</p>'; return; }
+    var rows = r.data || [];
+    if (!rows.length) { box.innerHTML = '<p class="sub">No installers published yet.</p>'; return; }
+    box.innerHTML = rows.map(function (p) {
+      return '<div class="row"><div class="who"><b>' + escapeHtml(p.version) + ' · ' + escapeHtml(p.title || '') + '</b><span>' + escapeHtml(p.filename || p.file_url || '') + '</span></div>' + (p.is_latest ? '<span class="badge approved">latest</span>' : '') + '<a class="btn" href="' + (p.file_url || '#') + '">Open</a></div>';
+    }).join('');
+  }
+  document.getElementById('rel-go').onclick = async function () {
+    var note = document.getElementById('rel-msg');
+    var ver = (document.getElementById('rel-ver').value || '').trim();
+    var title = (document.getElementById('rel-title').value || '').trim() || ('Hive ' + ver);
+    var notes = (document.getElementById('rel-notes').value || '').trim();
+    var file = document.getElementById('rel-file').files[0];
+    var url = (document.getElementById('rel-url').value || '').trim();
+    if (!ver) { note.textContent = 'Add a version number.'; return; }
+    note.textContent = 'Publishing…';
+    var filename = file ? file.name : (url.split('/').pop() || ('Hive-Setup-' + ver + '.exe'));
+    var path = ver + '/' + filename;
+    if (file) {
+      var up = await sb.storage.from('installers').upload(path, file, { upsert: true, contentType: 'application/octet-stream' });
+      if (up.error) { note.textContent = 'Upload failed: ' + up.error.message + ' — paste a public URL instead, or run supabase/schema.sql.'; if (!url) return; }
+      else { var pub = sb.storage.from('installers').getPublicUrl(path); url = (pub.data && pub.data.publicUrl) || url; }
+    }
+    if (!url) { note.textContent = 'Choose a file or paste a download URL.'; return; }
+    await sb.from('releases').update({ is_latest: false }).eq('is_latest', true);
+    var ins = await sb.from('releases').insert({ version: ver, title: title, notes: notes || null, filename: filename, file_path: path, file_url: url, file_size: file ? file.size : null, is_latest: true });
+    if (ins.error) { note.textContent = ins.error.message; return; }
+    note.textContent = 'Live on the download page.';
+    await loadRel();
+  };
   async function loadFb() {
-    var box = document.getElementById('fb');
-    if (!box) return;
+    var box = document.getElementById('fb'); if (!box) return;
     var r = await sb.from('feedback').select('*').order('created_at', { ascending: false }).limit(50);
     if (r.error) { box.innerHTML = '<p class="sub">' + escapeHtml(r.error.message) + '</p>'; return; }
     var rows = r.data || [];
@@ -114,8 +143,7 @@
     }).join('');
   }
   async function loadEmails() {
-    var box = document.getElementById('emails');
-    if (!box) return;
+    var box = document.getElementById('emails'); if (!box) return;
     var r = await sb.from('waitlist_emails').select('*').order('created_at', { ascending: false });
     if (r.error) { box.innerHTML = ''; return; }
     var rows = r.data || [];
@@ -124,7 +152,7 @@
       return '<div class="row"><div class="who"><b>' + escapeHtml(p.email) + '</b><span>' + (p.created_at ? new Date(p.created_at).toLocaleString() : '') + '</span></div><span class="badge pending">email</span></div>';
     }).join('');
   }
-  function escapeHtml(s) { return String(s || '').replace(/[&<>\"']/g, function (c) { return ({ '&':'&', '<':'<', '>':'>', '\"':'"', \"'\":'&#39;' })[c]; }); }
+  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, function (c) { return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]; }); }
   async function review(id, decision) {
     var note = decision === 'denied' ? (window.prompt('Optional note for this decline:') || null) : null;
     var r = await sb.rpc('review_waitlist', { target: id, decision: decision, note: note });
@@ -132,18 +160,17 @@
     await load();
   }
   function loadGh() {
-    var box = document.getElementById('gh-rels');
-    if (!box) return;
+    var box = document.getElementById('gh-rels'); if (!box) return;
     fetch('https://api.github.com/repos/samkomedved319-dev/hive-releases/releases')
       .then(function (r) { return r.json(); })
       .then(function (list) {
-        if (!list || !list.length) { box.innerHTML = '<p class="sub">No GitHub releases yet.</p>'; return; }
-        box.innerHTML = list.map(function (rel) {
+        if (!list || !list.length) { box.innerHTML = ''; return; }
+        box.innerHTML = '<p class="sub">GitHub hive-releases</p>' + list.map(function (rel) {
           var assets = (rel.assets || []).map(function (a) { return a.name; }).join(', ') || 'no installer attached yet';
           return '<div class="row"><div class="who"><b>' + escapeHtml(rel.name || rel.tag_name) + '</b><span>' + escapeHtml(assets) + '</span></div><a class="btn" href="' + rel.html_url + '">Open</a></div>';
         }).join('');
       })
-      .catch(function () { box.innerHTML = '<p class="sub">Could not list GitHub releases.</p>'; });
+      .catch(function () {});
   }
   boot();
 </script>
