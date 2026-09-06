@@ -8,7 +8,6 @@
 <link rel="icon" type="image/png" href="logohive.png" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --bg:#000; --text:#fff; --dim:#8b8b8b; --line:#2a2a2a; }
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { min-height:100%; background:#000; color:#fff; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   body { display:flex; flex-direction:column; min-height:100dvh; }
@@ -23,27 +22,20 @@
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; padding:48px 20px 80px;
   }
-  h1 {
-    font-size: clamp(44px, 8vw, 84px);
-    font-weight: 600; letter-spacing: -.04em; line-height: .95;
-  }
+  h1 { font-size: clamp(44px, 8vw, 84px); font-weight: 600; letter-spacing: -.04em; line-height: .95; }
   h1 img { width: .82em; height: .82em; vertical-align: -0.08em; margin: 0 .12em; border-radius: 18%; }
-  .lead {
-    color:#8b8b8b; font-size: clamp(16px, 2.2vw, 20px);
-    max-width: 560px; line-height: 1.55; margin: 22px auto 36px;
-  }
+  .lead { color:#8b8b8b; font-size: clamp(16px, 2.2vw, 20px); max-width: 560px; line-height: 1.55; margin: 22px auto 36px; }
   .cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
   .btn {
     display:inline-flex; align-items:center; justify-content:center; gap:10px;
     height:48px; padding:0 22px; border-radius:999px; font: 600 15px/1 inherit;
-    text-decoration:none; border:1px solid transparent; cursor:pointer;
+    text-decoration:none; border:1px solid transparent; cursor:pointer; background:#fff; color:#000;
   }
-  .btn.white { background:#fff; color:#000; }
+  .btn:disabled { opacity:.5; cursor:wait; }
   .btn.ghost { background:transparent; color:#fff; border-color:#333; }
-  .meta { margin-top:28px; color:#6f6f6f; font-size:13px; }
+  .meta { margin-top:28px; color:#6f6f6f; font-size:13px; min-height:1.4em; }
   .meta b { color:#cfcfcf; font-weight:600; }
   footer { padding: 0 20px 28px; text-align:center; color:#555; font-size:12px; }
-  footer a { color:#777; }
 </style>
 </head>
 <body>
@@ -54,33 +46,68 @@
     <h1>Meet <img src="logohive.png" alt="" /> Hive</h1>
     <p class="lead">A Windows workspace for concurrent agents. Give them real work. They search, write, and come back with finished work.</p>
     <div class="cta">
-      <a class="btn white" id="dl" href="#">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 14.5h16V16H0zM8.75 0v9.44l3.47-3.47.53.53L8 11.25 3.25 6.5l.53-.53 3.47 3.47V0z"/></svg>
-        Download for Windows
-      </a>
+      <button class="btn" type="button" id="dl" disabled>Download for Windows</button>
       <a class="btn ghost" href="index.html">Contact / waitlist</a>
     </div>
-    <p class="meta" id="meta">Loading latest installer…</p>
+    <p class="meta" id="meta">Looking up the latest installer…</p>
   </main>
-  <footer>Windows 10 / 11 · No GitHub account · Hive Free: GLM 5.3 + Nemotron Nano</footer>
+  <footer>Windows 10 / 11 · File comes from Hive’s site, not GitHub</footer>
 <script>
-  var FALLBACK = 'https://github.com/samkomedved319-dev/hive-releases/releases/latest/download/Hive-Setup-0.0.1.4.exe';
   var sb = window.supabase.createClient(
     'https://nqkmnmwbmikbgopwkvse.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21ubXdibWlrYmdvcHdrdnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMyOTksImV4cCI6MjEwNDAzOTI5OX0.5hu89H56db0OxrEIJUIXSn7O_qP9f4yML_W0Vy8ATMU'
   );
   var dl = document.getElementById('dl');
   var meta = document.getElementById('meta');
-  dl.href = FALLBACK;
+  var fileUrl = '';
+  var fileName = 'Hive-Setup.exe';
+
+  function isGithub(u) {
+    return /github\.com/i.test(u || '');
+  }
+
   sb.from('releases').select('*').eq('is_latest', true).order('created_at', { ascending: false }).limit(1)
     .then(function (r) {
       var row = r.data && r.data[0];
-      if (!row) { meta.textContent = 'Windows 10 / 11 · latest public build'; return; }
-      var url = row.file_url || FALLBACK;
-      dl.href = url;
-      meta.innerHTML = 'Version <b>' + (row.version || '') + '</b>' + (row.title ? ' · ' + row.title : '') + ' · no sign-in';
+      if (!row || !row.file_url || isGithub(row.file_url)) {
+        meta.textContent = 'No installer published yet. The admin account must upload one.';
+        return;
+      }
+      fileUrl = row.file_url;
+      fileName = row.filename || ('Hive-Setup-' + (row.version || '') + '.exe');
+      dl.disabled = false;
+      meta.innerHTML = 'Version <b>' + (row.version || '') + '</b> · Windows 10 / 11 · starts in this tab';
     })
-    .catch(function () { meta.textContent = 'Windows 10 / 11'; });
+    .catch(function () {
+      meta.textContent = 'Could not load the installer list.';
+    });
+
+  dl.addEventListener('click', async function () {
+    if (!fileUrl) return;
+    dl.disabled = true;
+    dl.textContent = 'Downloading…';
+    try {
+      var res = await fetch(fileUrl);
+      if (!res.ok) throw new Error('bad status');
+      var blob = await res.blob();
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      var a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = fileName;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    dl.disabled = false;
+    dl.textContent = 'Download for Windows';
+  });
 </script>
 </body>
 </html>
