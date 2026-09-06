@@ -51,7 +51,7 @@
     </div>
     <p class="meta" id="meta">Looking up the latest installer…</p>
   </main>
-  <footer>Windows 10 / 11 · File comes from Hive’s site, not GitHub</footer>
+  <footer>Windows 10 / 11 · Hive 0.0.1.4</footer>
 <script>
   var sb = window.supabase.createClient(
     'https://nqkmnmwbmikbgopwkvse.supabase.co',
@@ -59,27 +59,37 @@
   );
   var dl = document.getElementById('dl');
   var meta = document.getElementById('meta');
-  var fileUrl = '';
-  var fileName = 'Hive-Setup.exe';
+  var FALLBACK_URL = 'https://github.com/samkomedved319-dev/hive-releases/releases/download/v0.0.1.4/Hive-Setup-0.0.1.4.exe';
+  var FALLBACK_NAME = 'Hive-Setup-0.0.1.4.exe';
+  var FALLBACK_VER = '0.0.1.4';
+  var fileUrl = FALLBACK_URL;
+  var fileName = FALLBACK_NAME;
 
   function isGithub(u) {
     return /github\.com/i.test(u || '');
+  }
+
+  function useFallback() {
+    fileUrl = FALLBACK_URL;
+    fileName = FALLBACK_NAME;
+    dl.disabled = false;
+    meta.innerHTML = 'Version <b>' + FALLBACK_VER + '</b> · Windows 10 / 11 · starts in this tab';
   }
 
   sb.from('releases').select('*').eq('is_latest', true).order('created_at', { ascending: false }).limit(1)
     .then(function (r) {
       var row = r.data && r.data[0];
       if (!row || !row.file_url || isGithub(row.file_url)) {
-        meta.textContent = 'No installer published yet. The admin account must upload one.';
+        useFallback();
         return;
       }
       fileUrl = row.file_url;
       fileName = row.filename || ('Hive-Setup-' + (row.version || '') + '.exe');
       dl.disabled = false;
-      meta.innerHTML = 'Version <b>' + (row.version || '') + '</b> · Windows 10 / 11 · starts in this tab';
+      meta.innerHTML = 'Version <b>' + (row.version || FALLBACK_VER) + '</b> · Windows 10 / 11 · starts in this tab';
     })
     .catch(function () {
-      meta.textContent = 'Could not load the installer list.';
+      useFallback();
     });
 
   dl.addEventListener('click', async function () {
